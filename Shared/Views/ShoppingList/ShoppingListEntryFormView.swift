@@ -118,7 +118,6 @@ struct ShoppingListEntryFormView: View {
                         .disabled(!isFormValid)
                     }
                 }
-                .animation(.default)
         }
         #endif
     }

@@ -7,26 +7,6 @@
 
 import SwiftUI
 
-struct ShoppingListActionItem: View {
-    var title: String
-    var foregroundColor: Color
-    var backgroundColor: Color?
-    var hasBorder: Bool?
-    
-    let cornerRadiusValue: CGFloat = 5.0
-    let paddingAmount: CGFloat = 9.0
-    
-    var body: some View {
-        Text(LocalizedStringKey(title))
-            .fontWeight(.regular)
-            .padding(paddingAmount)
-            .foregroundColor(foregroundColor)
-            .background(backgroundColor)
-            .cornerRadius(cornerRadiusValue)
-            .modifier(if: hasBorder ?? false, then: {$0.overlay(RoundedRectangle(cornerRadius: cornerRadiusValue).stroke(foregroundColor, lineWidth: 1))})
-    }
-}
-
 struct ShoppingListActionView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
@@ -36,12 +16,6 @@ struct ShoppingListActionView: View {
     @Binding var toastType: ShoppingListToastType?
     
     @State private var showClearListAlert: Bool = false
-    
-    #if os(macOS)
-    let ismacOS = true
-    #else
-    let ismacOS = false
-    #endif
     
     private func slAction(_ actionType: ShoppingListActionType) {
         grocyVM.shoppingListAction(content: ShoppingListAction(listID: Int(selectedShoppingListID)!), actionType: actionType, completion: { result in
@@ -57,49 +31,51 @@ struct ShoppingListActionView: View {
     }
     
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false){
-            HStack(spacing: 5){
-                ShoppingListActionItem(title: "str.shL.action.addItem", foregroundColor: .white, backgroundColor: .blue)
-                    .onTapGesture {
-                        showAddItem.toggle()
-                    }
-                    .modifier(if: ismacOS, then: {$0.popover(isPresented: $showAddItem, content: {
-                        ScrollView{
-                            ShoppingListEntryFormView(isNewShoppingListEntry: true, selectedShoppingListID: selectedShoppingListID)
-                                .frame(width: 500, height: 400)
-                        }
-                    })}, else: {$0.sheet(isPresented: $showAddItem, content: {
+        //            ShoppingListFilterView(filteredStatus: $filteredStatus)
+        Button(action: {
+            showAddItem.toggle()
+        }, label: {
+            Label(LocalizedStringKey("str.shL.action.addItem"), systemImage: MySymbols.addToShoppingList)
+#if os(macOS)
+                .popover(isPresented: $showAddItem, content: {
+                    ScrollView{
                         ShoppingListEntryFormView(isNewShoppingListEntry: true, selectedShoppingListID: selectedShoppingListID)
-                    })})
-                
-                
-                ShoppingListActionItem(title: "str.shL.action.clearList", foregroundColor: .red, hasBorder: true)
-                    .onTapGesture {
-                        showClearListAlert.toggle()
+                            .frame(width: 500, height: 400)
                     }
-                
-                //                ShoppingListActionItem(title: "str.shL.action.addListItemsToStock", foregroundColor: .blue, hasBorder: true)
-                //                                    .onTapGesture {
-                //                                        print("not implemented")
-                //                                    }
-                
-                ShoppingListActionItem(title: "str.shL.action.addBelowMinStock", foregroundColor: .blue, hasBorder: true)
-                    .onTapGesture {
-                        slAction(.addMissing)
-                    }
-                
-                ShoppingListActionItem(title: "str.shL.action.addOverdue", foregroundColor: .blue, hasBorder: true)
-                    .onTapGesture {
-                        slAction(.addExpired)
-                        slAction(.addOverdue)
-                    }
-            }
-            .alert(isPresented: $showClearListAlert, content: {
-                Alert(title: Text(LocalizedStringKey("str.shL.action.clearList.confirm")), message: Text(grocyVM.shoppingListDescriptions.first(where: {$0.id == selectedShoppingListID})?.name ?? ""), primaryButton: .destructive(Text(LocalizedStringKey("str.clear"))) {
+                })
+#else
+                .sheet(isPresented: $showAddItem, content: {
+                    ShoppingListEntryFormView(isNewShoppingListEntry: true, selectedShoppingListID: selectedShoppingListID)
+                })
+#endif
+        })
+        //        Button(role: .destructive, action: {
+        //            showClearListAlert.toggle()
+        //        }, label: {
+        //            Label(LocalizedStringKey("str.shL.action.clearList"), systemImage: MySymbols.delete)
+        //        })
+        //                //                ShoppingListActionItem(title: "str.shL.action.addListItemsToStock", foregroundColor: .blue, hasBorder: true)
+        //                //                                    .onTapGesture {
+        //                //                                        print("not implemented")
+        //                //                                    }
+        //
+        //                ShoppingListActionItem(title: "str.shL.action.addBelowMinStock", foregroundColor: .blue, hasBorder: true)
+        //                    .onTapGesture {
+        //                        slAction(.addMissing)
+        //                    }
+        //
+        //                ShoppingListActionItem(title: "str.shL.action.addOverdue", foregroundColor: .blue, hasBorder: true)
+        //                    .onTapGesture {
+        //                        slAction(.addExpired)
+        //                        slAction(.addOverdue)
+        //                    }
+        //            }
+            .alert(LocalizedStringKey("str.shL.action.clearList.confirm"), isPresented: $showClearListAlert, actions: {
+                Button(LocalizedStringKey("str.cancel"), role: .cancel) { }
+                Button(LocalizedStringKey("str.delete"), role: .destructive) {
                     slAction(.clear)
-                }, secondaryButton: .cancel())
-            })
-        }
+                }
+            }, message: { Text(grocyVM.shoppingListDescriptions.first(where: {$0.id == selectedShoppingListID})?.name ?? "") })
     }
 }
 
