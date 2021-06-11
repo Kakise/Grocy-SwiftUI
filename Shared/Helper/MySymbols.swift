@@ -9,13 +9,13 @@ import Foundation
 
 struct MySymbols {
     static let purchase = "cart"
-    static let consume = "tuningfork"
+    static let consume = "fork.knife"
     static let open = "envelope.open"
     static let transfer = "arrow.left.arrow.right"
     static let inventory = "list.bullet"
     static let stockJournal = "list.bullet.rectangle"
-    static let addToShoppingList = "cart.badge.plus"
-    static let shoppingList = "cart.fill"
+    static let addToShoppingList = "note.text.badge.plus"
+    static let shoppingList = "note.text"
     
     static let stockOverview = "books.vertical"
     static let product = "tag"
