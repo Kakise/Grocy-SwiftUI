@@ -10,7 +10,7 @@ import SwiftUI
 struct MDShoppingLocationFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstAppear: Bool = true
     @State private var isProcessing: Bool = false
@@ -41,13 +41,13 @@ struct MDShoppingLocationFormView: View {
     }
     
     private func finishForm() {
-        #if os(iOS)
-        presentationMode.wrappedValue.dismiss()
-        #elseif os(macOS)
+#if os(iOS)
+        dismiss()
+#elseif os(macOS)
         if isNewShoppingLocation {
             showAddShoppingLocation = false
         }
-        #endif
+#endif
     }
     
     private func saveShoppingLocation() {
@@ -88,36 +88,26 @@ struct MDShoppingLocationFormView: View {
     }
     
     var body: some View {
-        #if os(macOS)
+#if os(macOS)
         ScrollView {
             content
                 .padding()
         }
-        #elseif os(iOS)
+#elseif os(iOS)
         content
             .navigationTitle(isNewShoppingLocation ? LocalizedStringKey("str.md.shoppingLocation.new") : LocalizedStringKey("str.md.shoppingLocation.edit"))
             .toolbar(content: {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .cancellationAction, content: {
                     if isNewShoppingLocation {
-                        Button(LocalizedStringKey("str.cancel")) {
-                            finishForm()
-                        }
+                        Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                     }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(LocalizedStringKey("str.md.shoppingLocation.save")) {
-                        saveShoppingLocation()
-                    }
-                    .disabled(!isNameCorrect || isProcessing)
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    // Back not shown without it
-                    if !isNewShoppingLocation{
-                        Text("")
-                    }
-                }
+                })
+                ToolbarItem(placement: .confirmationAction, content: {
+                    Button(LocalizedStringKey("str.md.shoppingLocation.save"), action: saveShoppingLocation)
+                        .disabled(!isNameCorrect || isProcessing)
+                })
             })
-        #endif
+#endif
     }
     
     var content: some View {
@@ -129,7 +119,7 @@ struct MDShoppingLocationFormView: View {
                     })
                 MyTextField(textToEdit: $mdShoppingLocationDescription, description: "str.md.description", isCorrect: Binding.constant(true), leadingIcon: MySymbols.description)
             }
-            #if os(macOS)
+#if os(macOS)
             HStack{
                 Button(LocalizedStringKey("str.cancel")) {
                     if isNewShoppingLocation{
@@ -146,7 +136,7 @@ struct MDShoppingLocationFormView: View {
                 .disabled(!isNameCorrect || isProcessing)
                 .keyboardShortcut(.defaultAction)
             }
-            #endif
+#endif
         }
         .onAppear(perform: {
             if firstAppear {
@@ -160,12 +150,12 @@ struct MDShoppingLocationFormView: View {
 
 struct MDShoppingLocationFormView_Previews: PreviewProvider {
     static var previews: some View {
-        #if os(macOS)
+#if os(macOS)
         Group {
             MDShoppingLocationFormView(isNewShoppingLocation: true, showAddShoppingLocation: Binding.constant(true), toastType: Binding.constant(nil))
             MDShoppingLocationFormView(isNewShoppingLocation: false, shoppingLocation: MDShoppingLocation(id: "0", name: "Shoppingloc", mdShoppingLocationDescription: "Descr", rowCreatedTimestamp: "", userfields: nil), showAddShoppingLocation: Binding.constant(false), toastType: Binding.constant(nil))
         }
-        #else
+#else
         Group {
             NavigationView {
                 MDShoppingLocationFormView(isNewShoppingLocation: true, showAddShoppingLocation: Binding.constant(true), toastType: Binding.constant(nil))
@@ -174,6 +164,6 @@ struct MDShoppingLocationFormView_Previews: PreviewProvider {
                 MDShoppingLocationFormView(isNewShoppingLocation: false, shoppingLocation: MDShoppingLocation(id: "0", name: "Shoppingloc", mdShoppingLocationDescription: "Descr", rowCreatedTimestamp: "", userfields: nil), showAddShoppingLocation: Binding.constant(false), toastType: Binding.constant(nil))
             }
         }
-        #endif
+#endif
     }
 }

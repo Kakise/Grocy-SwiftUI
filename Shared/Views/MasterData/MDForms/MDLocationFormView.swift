@@ -10,7 +10,7 @@ import SwiftUI
 struct MDLocationFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstAppear: Bool = true
     @State private var isProcessing: Bool = false
@@ -36,7 +36,7 @@ struct MDLocationFormView: View {
     private func resetForm() {
         self.name = location?.name ?? ""
         self.mdLocationDescription = location?.mdLocationDescription ?? ""
-        self.isFreezer = Bool(location?.isFreezer ?? "0") ?? false
+        self.isFreezer = ((location?.isFreezer ?? "0") as NSString).boolValue
         isNameCorrect = checkNameCorrect()
     }
     
@@ -45,13 +45,13 @@ struct MDLocationFormView: View {
     }
     
     private func finishForm() {
-        #if os(iOS)
-        presentationMode.wrappedValue.dismiss()
-        #elseif os(macOS)
+#if os(iOS)
+        dismiss()
+#elseif os(macOS)
         if isNewLocation {
             showAddLocation = false
         }
-        #endif
+#endif
     }
     
     private func saveLocation() {
@@ -91,36 +91,26 @@ struct MDLocationFormView: View {
     }
     
     var body: some View {
-        #if os(macOS)
+#if os(macOS)
         ScrollView{
             content
                 .padding()
         }
-        #elseif os(iOS)
+#elseif os(iOS)
         content
             .navigationTitle(isNewLocation ? LocalizedStringKey("str.md.location.new") : LocalizedStringKey("str.md.location.edit"))
             .toolbar(content: {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .cancellationAction, content: {
                     if isNewLocation {
-                        Button(LocalizedStringKey("str.cancel")) {
-                            self.presentationMode.wrappedValue.dismiss()
-                        }
+                        Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                     }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(LocalizedStringKey("str.md.location.save")) {
-                        saveLocation()
-                    }
-                    .disabled(!isNameCorrect || isProcessing)
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    // Back not shown without it
-                    if !isNewLocation{
-                        Text("")
-                    }
-                }
+                })
+                ToolbarItem(placement: .confirmationAction, content: {
+                    Button(LocalizedStringKey("str.md.location.save"), action: saveLocation)
+                        .disabled(!isNameCorrect || isProcessing)
+                })
             })
-        #endif
+#endif
     }
     
     var content: some View {
@@ -135,7 +125,7 @@ struct MDLocationFormView: View {
             Section(header: Text(LocalizedStringKey("str.md.location.freezer"))){
                 MyToggle(isOn: $isFreezer, description: "str.md.location.isFreezing", descriptionInfo: "str.md.location.isFreezing.description", icon: "thermometer.snowflake")
             }
-            #if os(macOS)
+#if os(macOS)
             HStack{
                 Button(LocalizedStringKey("str.cancel")) {
                     if isNewLocation{
@@ -152,7 +142,7 @@ struct MDLocationFormView: View {
                 .disabled(!isNameCorrect || isProcessing)
                 .keyboardShortcut(.defaultAction)
             }
-            #endif
+#endif
         }
         .onAppear(perform: {
             if firstAppear {
@@ -166,12 +156,12 @@ struct MDLocationFormView: View {
 
 struct MDLocationFormView_Previews: PreviewProvider {
     static var previews: some View {
-        #if os(macOS)
+#if os(macOS)
         Group {
             MDLocationFormView(isNewLocation: true, showAddLocation: Binding.constant(true), toastType: Binding.constant(.successAdd))
             MDLocationFormView(isNewLocation: false, location: MDLocation(id: "1", name: "Loc", mdLocationDescription: "descr", rowCreatedTimestamp: "", isFreezer: "1", userfields: nil), showAddLocation: Binding.constant(false), toastType: Binding.constant(.successAdd))
         }
-        #else
+#else
         Group {
             NavigationView {
                 MDLocationFormView(isNewLocation: true, showAddLocation: Binding.constant(true), toastType: Binding.constant(.successAdd))
@@ -180,6 +170,6 @@ struct MDLocationFormView_Previews: PreviewProvider {
                 MDLocationFormView(isNewLocation: false, location: MDLocation(id: "1", name: "Loc", mdLocationDescription: "descr", rowCreatedTimestamp: "", isFreezer: "1", userfields: nil), showAddLocation: Binding.constant(false), toastType: Binding.constant(.successAdd))
             }
         }
-        #endif
+#endif
     }
 }
