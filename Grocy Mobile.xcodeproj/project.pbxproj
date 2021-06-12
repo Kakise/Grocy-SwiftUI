@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		78113B7625B59C8E0000B237 /* LabelStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78113B7525B59C8E0000B237 /* LabelStyles.swift */; };
 		78113B7725B59C8E0000B237 /* LabelStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78113B7525B59C8E0000B237 /* LabelStyles.swift */; };
-		78113B7E25B5A19F0000B237 /* URLImage in Frameworks */ = {isa = PBXBuildFile; productRef = 78113B7D25B5A19F0000B237 /* URLImage */; };
-		78113B8425B5A3A50000B237 /* URLImage in Frameworks */ = {isa = PBXBuildFile; productRef = 78113B8325B5A3A50000B237 /* URLImage */; };
 		7812FFA725BB0B6900377773 /* ActivitiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7812FFA625BB0B6900377773 /* ActivitiesView.swift */; };
 		78138F4925AEF95800B9A50A /* ProductField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78138F4825AEF95800B9A50A /* ProductField.swift */; };
 		78138F4A25AEF95800B9A50A /* ProductField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78138F4825AEF95800B9A50A /* ProductField.swift */; };
@@ -561,7 +559,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				78113B7E25B5A19F0000B237 /* URLImage in Frameworks */,
 				781FE2E325E9215F002273F7 /* SwiftyBeaver in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -570,7 +567,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				78113B8425B5A3A50000B237 /* URLImage in Frameworks */,
 				781FE2E925E92171002273F7 /* SwiftyBeaver in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1026,7 +1022,6 @@
 			);
 			name = "Grocy Mobile (iOS)";
 			packageProductDependencies = (
-				78113B7D25B5A19F0000B237 /* URLImage */,
 				781FE2E225E9215F002273F7 /* SwiftyBeaver */,
 			);
 			productName = "Grocy-SwiftUI (iOS)";
@@ -1047,7 +1042,6 @@
 			);
 			name = "Grocy Mobile (macOS)";
 			packageProductDependencies = (
-				78113B8325B5A3A50000B237 /* URLImage */,
 				781FE2E825E92171002273F7 /* SwiftyBeaver */,
 			);
 			productName = "Grocy-SwiftUI (macOS)";
@@ -1126,7 +1120,6 @@
 			);
 			mainGroup = 78CB748D255E9EF600319108;
 			packageReferences = (
-				78113B7C25B5A19F0000B237 /* XCRemoteSwiftPackageReference "url-image" */,
 				781FE2E125E9215F002273F7 /* XCRemoteSwiftPackageReference "SwiftyBeaver" */,
 			);
 			productRefGroup = 78CB749B255E9EF800319108 /* Products */;
@@ -2118,14 +2111,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		78113B7C25B5A19F0000B237 /* XCRemoteSwiftPackageReference "url-image" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/dmytro-anokhin/url-image.git";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 		781FE2E125E9215F002273F7 /* XCRemoteSwiftPackageReference "SwiftyBeaver" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SwiftyBeaver/SwiftyBeaver.git";
@@ -2137,16 +2122,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		78113B7D25B5A19F0000B237 /* URLImage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 78113B7C25B5A19F0000B237 /* XCRemoteSwiftPackageReference "url-image" */;
-			productName = URLImage;
-		};
-		78113B8325B5A3A50000B237 /* URLImage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 78113B7C25B5A19F0000B237 /* XCRemoteSwiftPackageReference "url-image" */;
-			productName = URLImage;
-		};
 		781FE2E225E9215F002273F7 /* SwiftyBeaver */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 781FE2E125E9215F002273F7 /* XCRemoteSwiftPackageReference "SwiftyBeaver" */;

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import URLImage
 
 struct MDProductPictureFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
@@ -85,12 +84,14 @@ struct MDProductPictureFormView: View {
         VStack{
             if showNewPicture {
                 if let newPictureURL = newPictureURL, let newPictureFileName = newPictureFileName {
-                    URLImage(url: newPictureURL) { image in
+                    AsyncImage(url: newPictureURL, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .background(Color.white)
-                    }
+                    }, placeholder: {
+                        ProgressView().progressViewStyle(.circular)
+                    })
                     .frame(maxHeight: 100)
                     Text(newPictureFileName)
                         .font(.caption)
@@ -98,12 +99,14 @@ struct MDProductPictureFormView: View {
             } else {
                 if let pictureFileName = product?.pictureFileName, !pictureFileName.isEmpty {
                     if let base64Encoded = pictureFileName.data(using: .utf8)?.base64EncodedString(options: Data.Base64EncodingOptions(rawValue: 0)), let pictureURL = URL(string: grocyVM.getPictureURL(groupName: groupName, fileName: base64Encoded) ?? "") {
-                        URLImage(url: pictureURL) { image in
+                        AsyncImage(url: pictureURL, content: { image in
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .background(Color.white)
-                        }
+                        }, placeholder: {
+                            ProgressView().progressViewStyle(.circular)
+                        })
                         .frame(maxHeight: 100)
                     }
                     Text(pictureFileName)
@@ -191,11 +194,13 @@ struct MDProductPictureFormView: View {
                     #endif
                     if let selectedPictureURL = selectedPictureURL, let selectedPictureFileName = selectedPictureFileName {
                         VStack(alignment: .center){
-                            URLImage(url: selectedPictureURL, content: {image in
+                            AsyncImage(url: selectedPictureURL, content: { image in
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
                                     .background(Color.white)
+                            }, placeholder: {
+                                ProgressView().progressViewStyle(.circular)
                             })
                             .frame(maxWidth: 100)
                             Text(selectedPictureFileName)

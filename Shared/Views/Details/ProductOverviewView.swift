@@ -6,12 +6,11 @@
 //
 
 import SwiftUI
-import URLImage
 
 struct ProductOverviewView: View {
     var productDetails: ProductDetailsModel
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         #if os(macOS)
@@ -65,12 +64,14 @@ struct ProductOverviewView: View {
             
             if let pictureURL = productDetails.pictureURL {
                 if let url = URL(string: pictureURL) {
-                    URLImage(url: url) { image in
+                    AsyncImage(url: url, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .background(Color.white)
-                    }
+                    }, placeholder: {
+                        ProgressView().progressViewStyle(.circular)
+                    })
                     .frame(width: 50, height: 50)
                 }
             }
@@ -85,13 +86,13 @@ struct ProductOverviewView: View {
 //                        print("")
 //                    }, label: {Text(LocalizedStringKey("str.details.stockJournal"))})
 //                    Button(action: {
-//                        self.presentationMode.wrappedValue.dismiss()
+//                        dismiss()
 //                    }, label: {Label(LocalizedStringKey("str.details.edit"), systemImage: "square.and.pencil")})
 //                }
 //            }
             ToolbarItem(placement: .cancellationAction) {
                 Button(LocalizedStringKey("str.ok")) {
-                    self.presentationMode.wrappedValue.dismiss()
+                    dismiss()
                 }
             }
         })
