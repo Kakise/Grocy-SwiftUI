@@ -30,7 +30,7 @@ struct MDShoppingLocationRowView: View {
                 Text(shoppingLocation.name)
                     .font(.largeTitle)
                 if let description = shoppingLocation.mdShoppingLocationDescription, !description.isEmpty {
-                    Text(shoppingLocation.mdShoppingLocationDescription!)
+                    Text(description)
                         .font(.caption)
                 }
             }
@@ -115,7 +115,9 @@ struct MDShoppingLocationsView: View {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: {
                         showAddShoppingLocation.toggle()
-                    }, label: {Image(systemName: MySymbols.new)})
+                    }, label: {
+                        Label(LocalizedStringKey("str.md.shoppingLocation.new"), systemImage: MySymbols.new)
+                    })
                 }
             }
             .navigationTitle(LocalizedStringKey("str.md.shoppingLocations"))
@@ -153,6 +155,7 @@ struct MDShoppingLocationsView: View {
         })
         .searchable(LocalizedStringKey("str.search"), text: $searchString)
         .refreshable(action: updateData)
+        .animation(.default, value: filteredShoppingLocations.count)
         .toast(item: $toastType, isSuccess: Binding.constant(toastType == .successAdd || toastType == .successEdit), content: { item in
             switch item {
             case .successAdd:

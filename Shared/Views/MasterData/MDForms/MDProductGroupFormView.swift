@@ -10,7 +10,7 @@ import SwiftUI
 struct MDProductGroupFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstAppear: Bool = true
     @State private var isProcessing: Bool = false
@@ -42,7 +42,7 @@ struct MDProductGroupFormView: View {
     
     private func finishForm() {
         #if os(iOS)
-        presentationMode.wrappedValue.dismiss()
+        dismiss()
         #elseif os(macOS)
         if isNewProductGroup {
             showAddProductGroup = false
@@ -99,9 +99,7 @@ struct MDProductGroupFormView: View {
             .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
                     if isNewProductGroup {
-                        Button(LocalizedStringKey("str.cancel")) {
-                            finishForm()
-                        }
+                        Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
@@ -109,12 +107,6 @@ struct MDProductGroupFormView: View {
                         saveProductGroup()
                     }
                     .disabled(!isNameCorrect || isProcessing)
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    // Back not shown without it
-                    if !isNewProductGroup{
-                        Text("")
-                    }
                 }
             })
         #endif
@@ -131,7 +123,7 @@ struct MDProductGroupFormView: View {
             }
             #if os(macOS)
             HStack{
-                Button(LocalizedStringKey("str.cancel")) {
+                Button(LocalizedStringKey("str.cancel"), role: .cancel) {
                     if isNewProductGroup{
                         finishForm()
                     } else {

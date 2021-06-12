@@ -36,7 +36,7 @@ struct MDLocationRowView: View {
                     }
                 }
                 if let description = location.mdLocationDescription, !description.isEmpty {
-                    Text(location.mdLocationDescription!)
+                    Text(description)
                         .font(.caption)
                 }
             }
@@ -121,7 +121,9 @@ struct MDLocationsView: View {
                 ToolbarItem(placement: .primaryAction, content: {
                     Button(action: {
                         showAddLocation.toggle()
-                    }, label: {Image(systemName: MySymbols.new)})
+                    }, label: {
+                        Label(LocalizedStringKey("str.md.location.new"), systemImage: MySymbols.new)
+                    })
                 })
             })
             .navigationTitle(LocalizedStringKey("str.md.locations"))
@@ -156,6 +158,7 @@ struct MDLocationsView: View {
         .onAppear(perform: { grocyVM.requestData(objects: [.locations], ignoreCached: false) })
         .searchable(LocalizedStringKey("str.search"), text: $searchString)
         .refreshable(action: updateData)
+        .animation(.default, value: filteredLocations.count)
         .toast(item: $toastType, isSuccess: Binding.constant(toastType == .successAdd || toastType == .successEdit), content: { item in
             switch item {
             case .successAdd:
