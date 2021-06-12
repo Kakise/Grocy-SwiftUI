@@ -10,25 +10,23 @@ import SwiftUI
 struct StockJournalFilterBar: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Binding var searchString: String
     @Binding var filteredProductID: String?
     @Binding var filteredTransactionType: TransactionType?
     @Binding var filteredLocationID: String?
     @Binding var filteredUserID: String?
     
-    #if os(iOS)
+#if os(iOS)
     @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
     @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
-    #endif
+#endif
     
     var body: some View {
         VStack{
-            SearchBar(text: $searchString, placeholder: "str.search")
-            #if os(iOS)
+#if os(iOS)
             let filterColumns = [GridItem](repeating: GridItem(.flexible()), count: (horizontalSizeClass == .compact && verticalSizeClass == .regular) ? 2 : 4)
-            #else
+#else
             let filterColumns = [GridItem](repeating: GridItem(.flexible()), count: 4)
-            #endif
+#endif
             LazyVGrid(columns: filterColumns, alignment: .leading, content: {
                 Picker(selection: $filteredProductID, label: Label(LocalizedStringKey("str.stock.journal.product"), systemImage: MySymbols.filter).fixedSize(horizontal: false, vertical: true), content: {
                     Text("str.stock.all").tag(nil as String?)
@@ -77,10 +75,10 @@ struct StockJournalRowView: View {
         grocyVM.undoBookingWithID(id: journalEntry.id, completion: { result in
             switch result {
             case let .success(message):
-                print(message)
+                grocyVM.postLog(message: "Undo transaction successful. \(message)", type: .info)
                 grocyVM.requestData(objects: [.stock_log])
             case let .failure(error):
-                print("\(error)")
+                grocyVM.postLog(message: "Undo transaction failed. \(error)", type: .error)
                 showToastUndoFailed = true
             }
         })
@@ -90,7 +88,7 @@ struct StockJournalRowView: View {
         HStack(alignment: .center) {
             Image(systemName: "arrow.counterclockwise")
                 .padding()
-                .help(LocalizedStringKey("str.stock.journal.undo.failed"))
+                .help(LocalizedStringKey("str.stock.journal.undo"))
                 .foregroundColor(Color.white)
                 .background(journalEntry.undone == "1" ? Color.grocyGrayLight : Color.grocyGray)
                 .cornerRadius(5)
@@ -120,8 +118,8 @@ struct StockJournalRowView: View {
                     Text(LocalizedStringKey("str.stock.journal.transactionTime.info \(formatTimestampOutput(journalEntry.rowCreatedTimestamp))"))
                     Text(LocalizedStringKey("str.stock.journal.transactionType.info \("")"))
                         .font(.caption)
-                        +
-                        Text(journalEntry.transactionType.formatTransactionType())
+                    +
+                    Text(journalEntry.transactionType.formatTransactionType())
                         .font(.caption)
                     Text(LocalizedStringKey("str.stock.journal.location.info \(grocyVM.mdLocations.first(where: {$0.id == journalEntry.locationID})?.name ?? "Location Error")"))
                     Text(LocalizedStringKey("str.stock.journal.user.info \(grocyVM.users.first(where: { $0.id == journalEntry.userID })?.displayName ?? "Username Error")"))
@@ -136,7 +134,7 @@ struct StockJournalRowView: View {
 
 struct StockJournalView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
-    @Environment(\.presentationMode) private var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var searchString: String = ""
     
@@ -178,39 +176,38 @@ struct StockJournalView: View {
     }
     
     var body: some View {
-        #if os(iOS)
+#if os(iOS)
         NavigationView {
             content
                 .padding()
                 .toolbar(content: {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button(LocalizedStringKey("str.close")) {
-                            self.presentationMode.wrappedValue.dismiss()
-                        }
-                    }
+                    ToolbarItem(placement: .cancellationAction, content: { Button("str.close", role: .cancel, action: { dismiss() }) })
                 })
         }
-        #else
+#else
         content
-        #endif
+#endif
     }
     
     var content: some View {
-        VStack(alignment: .leading) {
-            StockJournalFilterBar(searchString: $searchString, filteredProductID: $filteredProductID, filteredTransactionType: $filteredTransactionType, filteredLocationID: $filteredLocationID, filteredUserID: $filteredUserID)
-            if grocyVM.stockJournal.isEmpty {
-                Text(LocalizedStringKey("str.stock.journal.empty")).padding()
-            } else if filteredJournal.isEmpty {
-                Text(LocalizedStringKey("str.noSearchResult")).padding()
+        List{
+            Section {
+                StockJournalFilterBar(filteredProductID: $filteredProductID, filteredTransactionType: $filteredTransactionType, filteredLocationID: $filteredLocationID, filteredUserID: $filteredUserID)
             }
-            ScrollView(.vertical) {
-                LazyVStack {
-                    ForEach(filteredJournal, id: \.id) { journalEntry in
-                        StockJournalRowView(journalEntry: journalEntry, showToastUndoFailed: $showToastUndoFailed)
-                    }
+            Section {
+                if grocyVM.stockJournal.isEmpty {
+                    Text(LocalizedStringKey("str.stock.journal.empty")).padding()
+                } else if filteredJournal.isEmpty {
+                    Text(LocalizedStringKey("str.noSearchResult")).padding()
+                }
+                ForEach(filteredJournal, id: \.id) { journalEntry in
+                    StockJournalRowView(journalEntry: journalEntry, showToastUndoFailed: $showToastUndoFailed)
                 }
             }
+            
         }
+        .searchable(LocalizedStringKey("str.search"), text: $searchString)
+        .refreshable(action: updateData)
         .onAppear(perform: {
             grocyVM.requestData(objects: [.stock_log], additionalObjects: [.users], ignoreCached: false)
             filteredProductID = selectedProductID
