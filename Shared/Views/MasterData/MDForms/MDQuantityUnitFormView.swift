@@ -10,7 +10,7 @@ import SwiftUI
 struct MDQuantityUnitFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstAppear: Bool = true
     @State private var isProcessing: Bool = false
@@ -44,7 +44,7 @@ struct MDQuantityUnitFormView: View {
     
     private func finishForm() {
         #if os(iOS)
-        presentationMode.wrappedValue.dismiss()
+        dismiss()
         #elseif os(macOS)
         if isNewQuantityUnit {
             showAddQuantityUnit = false
@@ -63,7 +63,6 @@ struct MDQuantityUnitFormView: View {
                 case let .success(message):
                     grocyVM.postLog(message: "Quantity unit add successful. \(message)", type: .info)
                     toastType = .successAdd
-                    resetForm()
                     updateData()
                     finishForm()
                 case let .failure(error):
@@ -101,9 +100,7 @@ struct MDQuantityUnitFormView: View {
             .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
                     if isNewQuantityUnit {
-                        Button(LocalizedStringKey("str.cancel")) {
-                            finishForm()
-                        }
+                        Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
@@ -111,12 +108,6 @@ struct MDQuantityUnitFormView: View {
                         saveQuantityUnit()
                     }
                     .disabled(!isNameCorrect || isProcessing)
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    // Back not shown without it
-                    if !isNewQuantityUnit{
-                        Text("")
-                    }
                 }
             })
         #endif
@@ -134,7 +125,7 @@ struct MDQuantityUnitFormView: View {
             }
             #if os(macOS)
             HStack{
-                Button(LocalizedStringKey("str.cancel")) {
+                Button(LocalizedStringKey("str.cancel"), role: .cancel) {
                     if isNewQuantityUnit{
                         finishForm()
                     } else {

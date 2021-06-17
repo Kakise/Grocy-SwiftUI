@@ -15,7 +15,7 @@ struct MDQuantityUnitRowView: View {
             Text("\(quantityUnit.name) (\(quantityUnit.namePlural))")
                 .font(.largeTitle)
             if let description = quantityUnit.mdQuantityUnitDescription, !description.isEmpty {
-                Text(quantityUnit.mdQuantityUnitDescription!)
+                Text(description)
                     .font(.caption)
             }
         }
@@ -27,15 +27,12 @@ struct MDQuantityUnitRowView: View {
 struct MDQuantityUnitsView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
-    @State private var isSearching: Bool = false
     @State private var searchString: String = ""
     @State private var showAddQuantityUnit: Bool = false
     
     @State private var shownEditPopover: MDQuantityUnit? = nil
-    
-    @State private var reloadRotationDeg: Double = 0
     
     @State private var quantityUnitToDelete: MDQuantityUnit? = nil
     @State private var showDeleteAlert: Bool = false
@@ -84,88 +81,56 @@ struct MDQuantityUnitsView: View {
         }
     }
     
-    #if os(macOS)
+#if os(macOS)
     var bodyContent: some View {
         NavigationView {
             content
                 .toolbar(content: {
                     ToolbarItem(placement: .primaryAction, content: {
-                        HStack{
-                            if isSearching { SearchBarSwiftUI(text: $searchString, placeholder: "str.md.search") }
-                            Button(action: {
-                                isSearching.toggle()
-                            }, label: {Image(systemName: MySymbols.search)})
-                            Button(action: {
-                                withAnimation {
-                                    self.reloadRotationDeg += 360
-                                }
-                                updateData()
-                            }, label: {
-                                Image(systemName: MySymbols.reload)
-                                    .rotationEffect(Angle.degrees(reloadRotationDeg))
-                            })
                             Button(action: {
                                 showAddQuantityUnit.toggle()
                             }, label: {Image(systemName: MySymbols.new)})
-                        }
-                    })
-                    ToolbarItem(placement: .automatic, content: {
-                        ToolbarSearchField(searchTerm: $searchString)
-                    })
+                        })
                 })
                 .frame(minWidth: Constants.macOSNavWidth)
         }
         .navigationTitle(LocalizedStringKey("str.md.quantityUnits"))
     }
-    #elseif os(iOS)
+#elseif os(iOS)
     var bodyContent: some View {
         content
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    HStack{
-                        Button(action: {
-                            isSearching.toggle()
-                        }, label: {Image(systemName: MySymbols.search)})
-                        Button(action: {
-                            withAnimation {
-                                self.reloadRotationDeg += 360
-                            }
-                            updateData()
-                        }, label: {
-                            Image(systemName: MySymbols.reload)
-                                .rotationEffect(Angle.degrees(reloadRotationDeg))
-                        })
-                        Button(action: {
-                            showAddQuantityUnit.toggle()
-                        }, label: {Image(systemName: MySymbols.new)})
-                    }
-                }
-            }
+            .toolbar(content: {
+                ToolbarItem(placement: .primaryAction, content: {
+                    Button(action: {
+                        showAddQuantityUnit.toggle()
+                    }, label: {
+                        Label(LocalizedStringKey("str.md.quantityUnit.new"), systemImage: MySymbols.new)
+                    })
+                })
+            })
             .navigationTitle(LocalizedStringKey("str.md.quantityUnits"))
             .sheet(isPresented: self.$showAddQuantityUnit, content: {
-                    NavigationView {
-                        MDQuantityUnitFormView(isNewQuantityUnit: true, showAddQuantityUnit: $showAddQuantityUnit, toastType: $toastType)
-                    } })
+                NavigationView {
+                    MDQuantityUnitFormView(isNewQuantityUnit: true, showAddQuantityUnit: $showAddQuantityUnit, toastType: $toastType)
+                }
+            })
     }
-    #endif
+#endif
     
     var content: some View {
         List(){
-            #if os(iOS)
-            if isSearching { SearchBar(text: $searchString, placeholder: "str.md.search") }
-            #endif
             if grocyVM.mdQuantityUnits.isEmpty {
                 Text(LocalizedStringKey("str.md.quantityUnits.empty"))
             } else if filteredQuantityUnits.isEmpty {
                 Text(LocalizedStringKey("str.noSearchResult"))
             }
-            #if os(macOS)
+#if os(macOS)
             if showAddQuantityUnit {
                 NavigationLink(destination: MDQuantityUnitFormView(isNewQuantityUnit: true, showAddQuantityUnit: $showAddQuantityUnit, toastType: $toastType), isActive: $showAddQuantityUnit, label: {
                     NewMDRowLabel(title: "str.md.quantityUnit.new")
                 })
             }
-            #endif
+#endif
             ForEach(filteredQuantityUnits, id:\.id) { quantityUnit in
                 NavigationLink(destination: MDQuantityUnitFormView(isNewQuantityUnit: false, quantityUnit: quantityUnit, showAddQuantityUnit: Binding.constant(false), toastType: $toastType)) {
                     MDQuantityUnitRowView(quantityUnit: quantityUnit)
@@ -173,8 +138,12 @@ struct MDQuantityUnitsView: View {
             }
             .onDelete(perform: delete)
         }
-        .onAppear(perform: { grocyVM.requestData(objects: [.quantity_units], ignoreCached: false) })
-        .animation(.default)
+        .onAppear(perform: {
+            grocyVM.requestData(objects: [.quantity_units], ignoreCached: false)
+        })
+        .searchable(LocalizedStringKey("str.search"), text: $searchString)
+        .refreshable(action: updateData)
+        .animation(.default, value: filteredQuantityUnits.count)
         .toast(item: $toastType, isSuccess: Binding.constant(toastType == .successAdd || toastType == .successEdit), content: { item in
             switch item {
             case .successAdd:
@@ -189,15 +158,12 @@ struct MDQuantityUnitsView: View {
                 Label(LocalizedStringKey("str.md.delete.fail"), systemImage: MySymbols.failure)
             }
         })
-        .alert(isPresented: $showDeleteAlert) {
-            Alert(title: Text(LocalizedStringKey("str.md.quantityUnit.delete.confirm")),
-                  message: Text(quantityUnitToDelete?.name ?? "error"),
-                  primaryButton: .destructive(Text(LocalizedStringKey("str.delete")))
-                    {
-                        deleteQuantityUnit(toDelID: quantityUnitToDelete?.id ?? "")
-                    },
-                  secondaryButton: .cancel())
-        }
+        .alert(LocalizedStringKey("str.md.quantityUnit.delete.confirm"), isPresented: $showDeleteAlert, actions: {
+            Button(LocalizedStringKey("str.cancel"), role: .cancel) { }
+            Button(LocalizedStringKey("str.delete"), role: .destructive) {
+                deleteQuantityUnit(toDelID: quantityUnitToDelete?.id ?? "")
+            }
+        }, message: { Text(quantityUnitToDelete?.name ?? "error") })
     }
 }
 
@@ -205,13 +171,13 @@ struct MDQuantityUnitsView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             MDQuantityUnitRowView(quantityUnit: MDQuantityUnit(id: "", name: "QU NAME", mdQuantityUnitDescription: "Description", rowCreatedTimestamp: "", namePlural: "QU NAME PLURAL", pluralForms: nil, userfields: nil))
-            #if os(macOS)
+#if os(macOS)
             MDQuantityUnitsView()
-            #else
+#else
             NavigationView() {
                 MDQuantityUnitsView()
             }
-            #endif
+#endif
         }
     }
 }
