@@ -42,6 +42,9 @@ struct MDBarcodesView: View {
     
     @State private var showAddBarcode: Bool = false
     
+    @State private var barcodeToDelete: MDProductBarcode? = nil
+    @State private var showDeleteAlert: Bool = false
+    
     @Binding var toastType: MDToastType?
     
     private func updateData() {
@@ -50,24 +53,25 @@ struct MDBarcodesView: View {
     
     var filteredBarcodes: MDProductBarcodes {
         grocyVM.mdProductBarcodes
-            .filter{
-                $0.productID == productID
-            }
     }
     
     private func delete(at offsets: IndexSet) {
         for offset in offsets {
-            grocyVM.deleteMDObject(object: .product_barcodes, id: filteredBarcodes[offset].id, completion: { result in
-                switch result {
-                case let .success(message):
-                    print(message)
-                    updateData()
-                case let .failure(error):
-                    print("\(error)")
-                    toastType = .failDelete
-                }
-            })
+            barcodeToDelete = filteredBarcodes[offset]
+            showDeleteAlert.toggle()
         }
+    }
+    private func deleteBarcode(toDelID: String) {
+        grocyVM.deleteMDObject(object: .product_barcodes, id: toDelID, completion: { result in
+                        switch result {
+                        case let .success(message):
+                            grocyVM.postLog(message: "Barcode delete successful. \(message)", type: .info)
+                            updateData()
+                        case let .failure(error):
+                            grocyVM.postLog(message: "Barcode delete failed. \(error)", type: .error)
+                            toastType = .failDelete
+                        }
+                    })
     }
     
     var body: some View {
@@ -123,19 +127,25 @@ struct MDBarcodesView: View {
             }
         }
         .navigationTitle(LocalizedStringKey("str.md.barcodes"))
-        .onAppear(perform: { grocyVM.requestData(objects: [.product_barcodes], ignoreCached: false) })
+        .onAppear(perform: {
+            grocyVM.requestData(objects: [.product_barcodes], ignoreCached: false)
+        })
+        .refreshable(action: updateData)
+        .animation(.default, value: filteredBarcodes.count)
         .toolbar(content: {
             ToolbarItem(placement: .automatic, content: {
                 Button(action: {showAddBarcode.toggle()}, label: {
                     Label("str.md.barcode.new", systemImage: "plus")
-                        .labelStyle(TextIconLabelStyle())
+                        .labelStyle(.titleAndIcon)
                 })
             })
-            ToolbarItem(placement: .navigationBarLeading) {
-                // Back not shown without it
-                Text("")
-            }
         })
+        .alert(LocalizedStringKey("str.md.barcode.delete.confirm"), isPresented: $showDeleteAlert, actions: {
+            Button(LocalizedStringKey("str.cancel"), role: .cancel) { }
+            Button(LocalizedStringKey("str.delete"), role: .destructive) {
+                deleteBarcode(toDelID: barcodeToDelete?.id ?? "")
+            }
+        }, message: { Text(barcodeToDelete?.barcode ?? "error") })
         .sheet(isPresented: $showAddBarcode, content: {
             NavigationView{
                 MDBarcodeFormView(isNewBarcode: true, productID: productID, toastType: $toastType)

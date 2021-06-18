@@ -416,6 +416,8 @@
 "str.md.barcode.note" = "Notiz";
 "str.md.barcode.info.amount %@" = "Menge: %@";
 "str.md.barcode.info.store %@" = "Geschäft: %@";
+"str.md.barcode.delete" = "Barcode löschen";
+"str.md.barcode.delete.confirm" = "Möchtest du wirklich diesen Barcode löschen?";
 
 "str.md.locations" = "Standorte";
 "str.md.location" = "Standort";
@@ -604,6 +606,7 @@
 "str.quickScan.add.product.add.success" = "Barcode erfolgreich zugewiesen";
 "str.quickScan.add.product.add.fail" = "Zuweisung fehlgeschlagen";
 "str.quickScan.barcode.invalid" = "Ungültiger Barcode";
+"str.quickScan.barcode.search" = "Mit Barcode suchen";
 
 // MARK: - Onboarding and Login
 "str.onboard.start" = "Los geht's!";

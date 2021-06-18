@@ -415,6 +415,8 @@
 "str.md.barcode.note" = "Note";
 "str.md.barcode.info.amount %@" = "Amount: %@";
 "str.md.barcode.info.store %@" = "Store: %@";
+"str.md.barcode.delete" = "Delete this barcode";
+"str.md.barcode.delete.confirm" = "Do you really want to delete this barcode?";
 
 "str.md.locations" = "Locations";
 "str.md.location" = "Location";
@@ -429,7 +431,7 @@
 "str.md.location.freezer" = "Freezer";
 "str.md.location.isFreezing" = "Is freezer";
 "str.md.location.isFreezing.description" = "When moving product from/to a freezer location, the products due date is automatically adjusted according to the product settings";
-"str.md.location.delete.confirm" = "Delete this location";
+"str.md.location.delete" = "Delete this location";
 "str.md.location.delete.confirm" = "Do you really want to delete this location?";
 
 "str.md.shoppingLocations" = "Shopping locations";
@@ -604,6 +606,7 @@
 "str.quickScan.add.product.add.success" = "Barcode added";
 "str.quickScan.add.product.add.fail" = "Adding barcode failed";
 "str.quickScan.barcode.invalid" = "Invalid barcode";
+"str.quickScan.barcode.search" = "Search with Barcode";
 
 // MARK: - Onboarding
 "str.onboard.start" = "Let's get started!";

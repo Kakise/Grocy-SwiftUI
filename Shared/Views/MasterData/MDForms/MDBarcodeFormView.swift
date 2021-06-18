@@ -10,7 +10,7 @@ import SwiftUI
 struct MDBarcodeFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstAppear: Bool = true
     @State private var isProcessing: Bool = false
@@ -53,13 +53,13 @@ struct MDBarcodeFormView: View {
     }
     
     private func finishForm() {
-        #if os(iOS)
-        presentationMode.wrappedValue.dismiss()
-        #elseif os(macOS)
+#if os(iOS)
+        dismiss()
+#elseif os(macOS)
         if isNewBarcode {
             NSApp.sendAction(#selector(NSPopover.performClose(_:)), to: nil, from: nil)
         }
-        #endif
+#endif
     }
     
     private func saveBarcode() {
@@ -69,13 +69,12 @@ struct MDBarcodeFormView: View {
             grocyVM.postMDObject(object: .product_barcodes, content: saveBarcode, completion: { result in
                 switch result {
                 case let .success(message):
-                    print(message)
+                    grocyVM.postLog(message: "Barcode add successful. \(message)", type: .info)
                     toastType = .successAdd
-                    resetForm()
                     updateData()
                     finishForm()
                 case let .failure(error):
-                    print("\(error)")
+                    grocyVM.postLog(message: "Barcode add failed. \(error)", type: .error)
                     toastType = .failAdd
                 }
             })
@@ -84,12 +83,12 @@ struct MDBarcodeFormView: View {
                 grocyVM.putMDObjectWithID(object: .product_barcodes, id: id, content: saveBarcode, completion: { result in
                     switch result {
                     case let .success(message):
-                        print(message)
+                        grocyVM.postLog(message: "Barcode edit successful. \(message)", type: .info)
                         toastType = .successEdit
                         updateData()
                         finishForm()
                     case let .failure(error):
-                        print("\(error)")
+                        grocyVM.postLog(message: "Barcode edit failed. \(error)", type: .error)
                         toastType = .failEdit
                     }
                 })
@@ -97,7 +96,7 @@ struct MDBarcodeFormView: View {
         }
     }
     
-    #if os(iOS)
+#if os(iOS)
     @State private var isShowingScanner = false
     func handleScan(result: Result<String, CodeScannerView.ScanError>) {
         self.isShowingScanner = false
@@ -105,48 +104,39 @@ struct MDBarcodeFormView: View {
         case .success(let code):
             barcode = code
         case .failure(let error):
-            print("Scanning failed")
-            print(error)
+            grocyVM.postLog(message: "Barcode scan failed. \(error)", type: .error)
         }
     }
-    #endif
+#endif
     
     var body: some View {
-        #if os(macOS)
+#if os(macOS)
         ScrollView {
             content
                 .padding()
         }
-        #elseif os(iOS)
+#elseif os(iOS)
         content
             .navigationTitle(isNewBarcode ? LocalizedStringKey("str.md.barcode.new") : LocalizedStringKey("str.md.barcode.edit"))
             .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
                     if isNewBarcode {
-                        Button(LocalizedStringKey("str.cancel")) {
-                            self.presentationMode.wrappedValue.dismiss()
-                        }
+                        Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(LocalizedStringKey("str.md.barcode.save")) {
                         saveBarcode()
-                        presentationMode.wrappedValue.dismiss()
+                        finishForm()
                     }.disabled(barcode.isEmpty)
                 }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    // Back not shown without it
-                    if !isNewBarcode{
-                        Text("")
-                    }
-                }
             })
-        #endif
+#endif
     }
     
     var content: some View {
         Form {
-            #if os(macOS)
+#if os(macOS)
             if isNewBarcode {
                 HStack(alignment: .center){
                     Text(LocalizedStringKey("str.md.barcode.new"))
@@ -157,33 +147,33 @@ struct MDBarcodeFormView: View {
                         .foregroundColor(.gray)
                 }
             }
-            #endif
+#endif
             HStack{
                 MyTextField(textToEdit: $barcode, description: "str.md.barcode.barcode", isCorrect: $isBarcodeCorrect, leadingIcon: MySymbols.barcode, emptyMessage: "str.md.barcode.barcode.required", errorMessage: "str.md.barcode.barcode.invalid", helpText: nil)
                     .onChange(of: barcode, perform: {newBC in
                         isBarcodeCorrect = checkBarcodeCorrect()
                     })
-                #if os(iOS)
+#if os(iOS)
                 Button(action: {
                     isShowingScanner.toggle()
                 }, label: {
                     Image(systemName: MySymbols.barcodeScan)
                 })
-                .sheet(isPresented: $isShowingScanner) {
-                    CodeScannerView(codeTypes: [.ean8, .ean13], scanMode: .once, simulatedData: "5901234123457", completion: self.handleScan)
-                }
-                #endif
+                    .sheet(isPresented: $isShowingScanner) {
+                        CodeScannerView(codeTypes: [.ean8, .ean13], scanMode: .once, simulatedData: "5901234123457", completion: self.handleScan)
+                    }
+#endif
             }
             Section(header: Text(LocalizedStringKey("str.md.barcode.amount")).font(.headline)) {
                 MyIntStepperOptional(amount: $amount, description: "str.md.barcode.amount", minAmount: 0, amountName: "", systemImage: MySymbols.amount)
-                Picker(selection: $quantityUnitID, label: Label(LocalizedStringKey("str.md.barcode.quantityUnit"), systemImage: "scalemass"), content: {
+                Picker(selection: $quantityUnitID, label: Label(LocalizedStringKey("str.md.barcode.quantityUnit"), systemImage: MySymbols.quantityUnit), content: {
                     Text("").tag(nil as String?)
                     ForEach(grocyVM.mdQuantityUnits, id:\.id) { pickerQU in
                         Text("\(pickerQU.name) (\(pickerQU.namePlural))").tag(pickerQU.id as String?)
                     }
                 }).disabled(true)
             }
-
+            
             Picker(selection: $shoppingLocationID, label: Label(LocalizedStringKey("str.md.barcode.shoppingLocation"), systemImage: MySymbols.shoppingLocation).foregroundColor(.primary), content: {
                 ForEach(grocyVM.mdShoppingLocations, id:\.id) { grocyShoppingLocation in
                     Text(grocyShoppingLocation.name).tag(grocyShoppingLocation.id as String?)
@@ -192,7 +182,7 @@ struct MDBarcodeFormView: View {
             
             MyTextField(textToEdit: $note, description: "str.md.barcode.note", isCorrect: Binding.constant(true), leadingIcon: MySymbols.description)
             
-            #if os(macOS)
+#if os(macOS)
             HStack{
                 Button(LocalizedStringKey("str.cancel")) {
                     if isNewBarcode{
@@ -208,7 +198,7 @@ struct MDBarcodeFormView: View {
                 }
                 .keyboardShortcut(.defaultAction)
             }
-            #endif
+#endif
         }
         .onAppear(perform: {
             if firstAppear {
