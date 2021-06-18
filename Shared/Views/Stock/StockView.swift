@@ -51,12 +51,13 @@ struct StockView: View {
     @State private var toastType: RowActionToastType?
     @State private var mdToastType: MDToastType?
     
-    #if os(iOS)
+#if os(iOS)
     @State private var activeSheet: StockInteractionSheet?
-    #elseif os(macOS)
+#elseif os(macOS)
     @State private var activeSheet: StockInteractionPopover?
     @State private var showStockJournal: Bool = false
-    #endif
+    @AppStorage("simplifiedStockView") var simplifiedStockView: Bool = false
+#endif
     
     var numExpiringSoon: Int {
         grocyVM.stock
@@ -90,7 +91,7 @@ struct StockView: View {
             .count
     }
     
-    var filteredProducts: Stock {
+    var filteredStock: Stock {
         grocyVM.stock
             .filter {
                 filteredStatus == .expiringSoon ? ((0..<(expiringDays + 1)) ~= getTimeDistanceFromString($0.bestBeforeDate) ?? 100) : true
@@ -133,7 +134,7 @@ struct StockView: View {
         }
     }
     
-    #if os(macOS)
+#if os(macOS)
     var bodyContent: some View {
         content
             .toolbar(content: {
@@ -173,11 +174,11 @@ struct StockView: View {
                     }, label: {
                         Label("Journal", systemImage: MySymbols.stockJournal)
                     })
-                    .popover(isPresented: $showStockJournal, content: {
-                        StockJournalView()
-                            .padding()
-                            .frame(width: 700, height: 500, alignment: .leading)
-                    })
+                        .popover(isPresented: $showStockJournal, content: {
+                            StockJournalView()
+                                .padding()
+                                .frame(width: 700, height: 500, alignment: .leading)
+                        })
                     Button(action: {
                         withAnimation {
                             self.reloadRotationDeg += 360
@@ -188,49 +189,39 @@ struct StockView: View {
                             .rotationEffect(Angle.degrees(reloadRotationDeg))
                     })
                 })
-                ToolbarItem(placement: .automatic, content: {
-                    ToolbarSearchField(searchTerm: $searchString)
-                })
             })
             .navigationSubtitle(LocalizedStringKey("str.stock.stockOverviewInfo \(grocyVM.stock.count) \(summedValueStr)"))
     }
-    #elseif os(iOS)
+#elseif os(iOS)
     var bodyContent: some View {
         content
             .toolbar(content: {
-                ToolbarItem(placement: .automatic, content: {
-                    HStack{
-                        Button(action: {
-                            updateData()
-                        }, label: {
-                            Image(systemName: MySymbols.reload)
-                        })
-                        Button(action: {
-                            self.activeSheet = .stockJournal
-                        }, label: {
-                            Label(LocalizedStringKey("str.details.stockJournal"), systemImage: MySymbols.stockJournal)
-                        })
-                        Button(action: {
-                            self.activeSheet = .inventoryProduct
-                        }, label: {
-                            Label(LocalizedStringKey("str.stock.inventory"), systemImage: MySymbols.inventory)
-                        })
-                        Button(action: {
-                            self.activeSheet = .transferProduct
-                        }, label: {
-                            Label(LocalizedStringKey("str.stock.transfer"), systemImage: MySymbols.transfer)
-                        })
-                        Button(action: {
-                            self.activeSheet = .consumeProduct
-                        }, label: {
-                            Label(LocalizedStringKey("str.stock.consume"), systemImage: MySymbols.consume)
-                        })
-                        Button(action: {
-                            self.activeSheet = .purchaseProduct
-                        }, label: {
-                            Label(LocalizedStringKey("str.stock.buy"), systemImage: MySymbols.purchase)
-                        })
-                    }
+                ToolbarItemGroup(placement: .navigationBarTrailing, content: {
+                    Button(action: {
+                        self.activeSheet = .stockJournal
+                    }, label: {
+                        Label(LocalizedStringKey("str.details.stockJournal"), systemImage: MySymbols.stockJournal)
+                    })
+                    Button(action: {
+                        self.activeSheet = .inventoryProduct
+                    }, label: {
+                        Label(LocalizedStringKey("str.stock.inventory"), systemImage: MySymbols.inventory)
+                    })
+                    Button(action: {
+                        self.activeSheet = .transferProduct
+                    }, label: {
+                        Label(LocalizedStringKey("str.stock.transfer"), systemImage: MySymbols.transfer)
+                    })
+                    Button(action: {
+                        self.activeSheet = .consumeProduct
+                    }, label: {
+                        Label(LocalizedStringKey("str.stock.consume"), systemImage: MySymbols.consume)
+                    })
+                    Button(action: {
+                        self.activeSheet = .purchaseProduct
+                    }, label: {
+                        Label(LocalizedStringKey("str.stock.buy"), systemImage: MySymbols.purchase)
+                    })
                 })
             })
             .sheet(item: $activeSheet, content: { item in
@@ -284,7 +275,7 @@ struct StockView: View {
                 }
             })
     }
-    #endif
+#endif
     
     var summedValueStr: String {
         return "\(String(format: "%.2f", summedValue)) \(grocyVM.getCurrencySymbol())"
@@ -292,20 +283,43 @@ struct StockView: View {
     
     var content: some View {
         List() {
-            StockFilterActionsView(filteredStatus: $filteredStatus, numExpiringSoon: numExpiringSoon, numOverdue: numOverdue, numExpired: numExpired, numBelowStock: numBelowStock)
-            StockFilterBar(searchString: $searchString, filteredLocation: $filteredLocationID, filteredProductGroup: $filteredProductGroupID, filteredStatus: $filteredStatus)
+            Section() {
+                StockFilterActionsView(filteredStatus: $filteredStatus, numExpiringSoon: numExpiringSoon, numOverdue: numOverdue, numExpired: numExpired, numBelowStock: numBelowStock)
+                StockFilterBar(filteredLocation: $filteredLocationID, filteredProductGroup: $filteredProductGroupID, filteredStatus: $filteredStatus)
+            }
             if grocyVM.stock.isEmpty {
                 Text("str.stock.empty").padding()
+            } else {
+                ForEach(filteredStock, id:\.productID) { stockElement in
+                    StockRowView(stockElement: stockElement, selectedStockElement: $selectedStockElement, activeSheet: $activeSheet, toastType: $toastType)
+                        .swipeActions(edge: .leading, allowsFullSwipe: false, content: {
+                            Button(action: {
+                                print("CONSUME ONE")
+                            }, label: {
+                                Label(formatStringAmount(stockElement.product.quickConsumeAmount), systemImage: MySymbols.consume)
+                            })
+                                .tint(.grocyGreen)
+                            Button(action: {
+                                print("CONSUME ALL")
+                            }, label: {
+                                Label(LocalizedStringKey("str.stock.tbl.action.all"), systemImage: MySymbols.consume)
+                            })
+                                .tint(.grocyRed)
+                            Button(action: {
+                                print("OPEN ONE")
+                            }, label: {
+                                Label(formatStringAmount(stockElement.product.quickConsumeAmount), systemImage: MySymbols.open)
+                            })
+                                .tint(.grocyGreen)
+                        })
+                }
+//                .listRowSeparatorTint(Color.white)
             }
-            StockTable(filteredStock: filteredProducts, selectedStockElement: $selectedStockElement, activeSheet: $activeSheet, toastType: $toastType)
-            // the sheets don't work without this
-            Text(selectedStockElement?.product.name ?? "no stockElement")
-                .font(.caption)
-                .hidden()
         }
-        .listStyle(InsetListStyle())
-        .animation(.default)
+        //        .listStyle(InsetListStyle())
         .navigationTitle(LocalizedStringKey("str.stock.stockOverview"))
+        .searchable(LocalizedStringKey("str.search"), text: $searchString)
+        .refreshable(action: updateData)
         .onAppear(perform: {
             if firstAppear {
                 grocyVM.requestData(objects: [.products, .shopping_locations, .locations, .product_groups, .quantity_units, .shopping_lists, .shopping_list], additionalObjects: [.stock, .system_config], ignoreCached: false)

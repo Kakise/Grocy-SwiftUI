@@ -7,25 +7,25 @@
 
 import SwiftUI
 
-struct StockTableRowSimplified: View {
+struct StockRowView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
     @AppStorage("expiringDays") var expiringDays: Int = 5
     @AppStorage("localizationKey") var localizationKey: String = "en"
     
     @Environment(\.colorScheme) var colorScheme
-    #if os(iOS)
+#if os(iOS)
     @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
     @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
-    #endif
+#endif
     
     var stockElement: StockElement
     @Binding var selectedStockElement: StockElement?
-    #if os(iOS)
+#if os(iOS)
     @Binding var activeSheet: StockInteractionSheet?
-    #elseif os(macOS)
+#elseif os(macOS)
     @Binding var activeSheet: StockInteractionPopover?
-    #endif
+#endif
     @Binding var toastType: RowActionToastType?
     
     @State private var showDetailView: Bool = false
@@ -66,21 +66,18 @@ struct StockTableRowSimplified: View {
     }
     
     var body: some View {
-        #if os(macOS)
         content
-            .background(backgroundColor)
+            .listRowBackground(backgroundColor)
+#if os(macOS)
             .sheet(isPresented: $showDetailView, content: {
                 ProductOverviewView(productDetails: ProductDetailsModel(product: stockElement.product))
             })
-        #else
-        content
-            .background(backgroundColor)
-        #endif
+#endif
     }
     
     var content: some View {
         VStack(alignment: .leading){
-            #if os(iOS)
+#if os(iOS)
             if horizontalSizeClass == .compact && verticalSizeClass == .regular {
                 HStack{
                     VStack(alignment: .leading){
@@ -96,30 +93,24 @@ struct StockTableRowSimplified: View {
                     Spacer()
                 }
             }
-            #else
+#else
             HStack{
                 stockElementNameAndActions
                 stockElementDetails
                 Spacer()
             }
-            #endif
+#endif
         }
     }
     
     var stockElementNameAndActions: some View {
-        VStack(alignment: .leading){
-            HStack{
-                Text(stockElement.product.name)
-                    .font(.headline)
-                    .onTapGesture {
-                        showDetailView.toggle()
-                        selectedStockElement = stockElement
-                        activeSheet = .productOverview
-                    }
+        Text(stockElement.product.name)
+            .font(.headline)
+            .onTapGesture {
+                showDetailView.toggle()
+                selectedStockElement = stockElement
+                activeSheet = .productOverview
             }
-
-            StockTableRowActionsView(stockElement: stockElement, selectedStockElement: $selectedStockElement, activeSheet: $activeSheet, toastType: $toastType)
-        }
     }
     
     var stockElementDetails: some View {
@@ -169,8 +160,8 @@ struct StockTableRowSimplified: View {
     }
 }
 
-struct StockTableRowSimplified_Previews: PreviewProvider {
+struct StockRowView_Previews: PreviewProvider {
     static var previews: some View {
-        StockTableRowSimplified(stockElement: StockElement(amount: "2", amountAggregated: "5", value: "1.0", bestBeforeDate: "12.12.2021", amountOpened: "1", amountOpenedAggregated: "2", isAggregatedAmount: "0", dueType: "1", productID: "1", product: MDProduct(id: "1", name: "Product", mdProductDescription: "", productGroupID: "1", active: "1", locationID: "1", shoppingLocationID: "1", quIDPurchase: "1", quIDStock: "1", quFactorPurchaseToStock: "1", minStockAmount: "0", defaultBestBeforeDays: "0", defaultBestBeforeDaysAfterOpen: "0", defaultBestBeforeDaysAfterFreezing: "0", defaultBestBeforeDaysAfterThawing: "0", pictureFileName: nil, enableTareWeightHandling: "0", tareWeight: "0", notCheckStockFulfillmentForRecipes: "0", parentProductID: nil, calories: "13", cumulateMinStockAmountOfSubProducts: "1", dueType: "1", quickConsumeAmount: "1", rowCreatedTimestamp: "ts", hideOnStockOverview: nil, userfields: nil)), selectedStockElement: Binding.constant(nil), activeSheet: Binding.constant(nil), toastType: Binding.constant(nil))
+        StockRowView(stockElement: StockElement(amount: "2", amountAggregated: "5", value: "1.0", bestBeforeDate: "12.12.2021", amountOpened: "1", amountOpenedAggregated: "2", isAggregatedAmount: "0", dueType: "1", productID: "1", product: MDProduct(id: "1", name: "Product", mdProductDescription: "", productGroupID: "1", active: "1", locationID: "1", shoppingLocationID: "1", quIDPurchase: "1", quIDStock: "1", quFactorPurchaseToStock: "1", minStockAmount: "0", defaultBestBeforeDays: "0", defaultBestBeforeDaysAfterOpen: "0", defaultBestBeforeDaysAfterFreezing: "0", defaultBestBeforeDaysAfterThawing: "0", pictureFileName: nil, enableTareWeightHandling: "0", tareWeight: "0", notCheckStockFulfillmentForRecipes: "0", parentProductID: nil, calories: "13", cumulateMinStockAmountOfSubProducts: "1", dueType: "1", quickConsumeAmount: "1", rowCreatedTimestamp: "ts", hideOnStockOverview: nil, userfields: nil)), selectedStockElement: Binding.constant(nil), activeSheet: Binding.constant(nil), toastType: Binding.constant(nil))
     }
 }

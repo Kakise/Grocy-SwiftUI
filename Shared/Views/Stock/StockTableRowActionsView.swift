@@ -82,7 +82,7 @@ struct StockTableRowActionsView: View {
                     }
                 }
             Menu(content: {
-                StockTableMenuView(stockElement: stockElement, selectedStockElement: $selectedStockElement, activeSheet: $activeSheet, toastType: $toastType)
+                StockElementMenuView(stockElement: stockElement, selectedStockElement: $selectedStockElement, activeSheet: $activeSheet, toastType: $toastType)
             }, label: {
                 RowInteractionButton(image: "ellipsis", backgroundColor: .white, foregroundColor: Color.gray)
             })
