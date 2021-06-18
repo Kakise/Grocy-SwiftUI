@@ -24,15 +24,12 @@ struct MDUserEntityRowView: View {
 struct MDUserEntitiesView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
-    
-    @State private var isSearching: Bool = false
+    @Environment(\.dismiss) var dismiss
+
     @State private var searchString: String = ""
     @State private var showAddUserEntity: Bool = false
     
     @State private var shownEditPopover: MDUserEntity? = nil
-    
-    @State private var reloadRotationDeg: Double = 0
     
     @State private var userEntityToDelete: MDUserEntity? = nil
     @State private var showDeleteAlert: Bool = false
@@ -60,10 +57,10 @@ struct MDUserEntitiesView: View {
         grocyVM.deleteMDObject(object: .userentities, id: toDelID, completion: { result in
             switch result {
             case let .success(message):
-                print(message)
+                grocyVM.postLog(message: "User entity delete successful. \(message)", type: .info)
                 updateData()
             case let .failure(error):
-                print("\(error)")
+                grocyVM.postLog(message: "User entity delete failed. \(error)", type: .error)
                 toastType = .failDelete
             }
         })
@@ -88,20 +85,9 @@ struct MDUserEntitiesView: View {
             content
                 .toolbar(content: {
                     ToolbarItem(placement: .primaryAction, content: {
-                        HStack{
-                            Button(action: {
-                                withAnimation {
-                                    self.reloadRotationDeg += 360
-                                }
-                                updateData()
-                            }, label: {
-                                Image(systemName: MySymbols.reload)
-                                    .rotationEffect(Angle.degrees(reloadRotationDeg))
-                            })
                             Button(action: {
                                 showAddUserEntity.toggle()
                             }, label: {Image(systemName: MySymbols.new)})
-                        }
                     })
                     ToolbarItem(placement: .automatic, content: {
                         ToolbarSearchField(searchTerm: $searchString)
@@ -115,35 +101,23 @@ struct MDUserEntitiesView: View {
     var bodyContent: some View {
         content
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    HStack{
-                        Button(action: {
-                            isSearching.toggle()
-                        }, label: {Image(systemName: MySymbols.search)})
-                        Button(action: {
-                            updateData()
-                        }, label: {
-                            Image(systemName: MySymbols.reload)
-                        })
+                ToolbarItem(placement: .primaryAction, content: {
                         Button(action: {
                             showAddUserEntity.toggle()
                         }, label: {Image(systemName: MySymbols.new)})
-                    }
-                }
+                })
             }
             .navigationTitle(LocalizedStringKey("str.md.userEntities"))
             .sheet(isPresented: self.$showAddUserEntity, content: {
                     NavigationView {
                         MDUserEntityFormView(isNewUserEntity: true, showAddUserEntity: $showAddUserEntity, toastType: $toastType)
-                    } })
+                    }
+            })
     }
     #endif
     
     var content: some View {
         List(){
-            #if os(iOS)
-            if isSearching { SearchBar(text: $searchString, placeholder: "str.md.search") }
-            #endif
             if grocyVM.mdUserEntities.isEmpty {
                 Text(LocalizedStringKey("str.md.userEntities.empty"))
             } else if filteredUserEntities.isEmpty {
@@ -166,7 +140,9 @@ struct MDUserEntitiesView: View {
         .onAppear(perform: {
             grocyVM.requestData(objects: [.userentities], ignoreCached: false)
         })
-        .animation(.default)
+        .searchable(LocalizedStringKey("str.search"), text: $searchString)
+        .refreshable(action: updateData)
+        .animation(.default, value: filteredUserEntities.count)
         .toast(item: $toastType, isSuccess: Binding.constant(toastType == .successAdd || toastType == .successEdit), content: { item in
             switch item {
             case .successAdd:
@@ -181,11 +157,12 @@ struct MDUserEntitiesView: View {
                 Label(LocalizedStringKey("str.md.delete.fail"), systemImage: MySymbols.failure)
             }
         })
-        .alert(isPresented: $showDeleteAlert) {
-            Alert(title: Text(LocalizedStringKey("str.md.userEntity.delete.confirm")), message: Text(userEntityToDelete?.name ?? "error"), primaryButton: .destructive(Text(LocalizedStringKey("str.delete"))) {
+        .alert(LocalizedStringKey("str.md.userEntity.delete.confirm"), isPresented: $showDeleteAlert, actions: {
+            Button(LocalizedStringKey("str.cancel"), role: .cancel) { }
+            Button(LocalizedStringKey("str.delete"), role: .destructive) {
                 deleteUserEntity(toDelID: userEntityToDelete?.id ?? "")
-            }, secondaryButton: .cancel())
-        }
+            }
+        }, message: { Text(userEntityToDelete?.name ?? "error") })
     }
 }
 

@@ -61,7 +61,6 @@ struct MDProductGroupFormView: View {
                 case let .success(message):
                     grocyVM.postLog(message: "Product group add successful. \(message)", type: .info)
                     toastType = .successAdd
-                    resetForm()
                     updateData()
                     finishForm()
                 case let .failure(error):

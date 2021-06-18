@@ -10,7 +10,7 @@ import SwiftUI
 struct MDUserEntityFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstAppear: Bool = true
     @State private var isProcessing: Bool = false
@@ -52,7 +52,7 @@ struct MDUserEntityFormView: View {
     
     private func finishForm() {
         #if os(iOS)
-        presentationMode.wrappedValue.dismiss()
+        dismiss()
         #elseif os(macOS)
         if isNewUserEntity {
             showAddUserEntity = false
@@ -71,7 +71,6 @@ struct MDUserEntityFormView: View {
                 case let .success(message):
                     grocyVM.postLog(message: "User entity add successful. \(message)", type: .info)
                     toastType = .successAdd
-                    resetForm()
                     updateData()
                     finishForm()
                 case let .failure(error):
@@ -109,9 +108,7 @@ struct MDUserEntityFormView: View {
             .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
                     if isNewUserEntity {
-                        Button(LocalizedStringKey("str.cancel")) {
-                            finishForm()
-                        }
+                        Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
@@ -119,12 +116,6 @@ struct MDUserEntityFormView: View {
                         saveUserEntity()
                     }
                     .disabled(!isNameCorrect || isProcessing)
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    // Back not shown without it
-                    if !isNewUserEntity{
-                        Text("")
-                    }
                 }
             })
         #endif

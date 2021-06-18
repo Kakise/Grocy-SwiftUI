@@ -27,15 +27,12 @@ struct MDTaskCategoryRowView: View {
 struct MDTaskCategoriesView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
-    
-    @State private var isSearching: Bool = false
+    @Environment(\.dismiss) var dismiss
+
     @State private var searchString: String = ""
     @State private var showAddTaskCategory: Bool = false
     
     @State private var shownEditPopover: MDTaskCategory? = nil
-    
-    @State private var reloadRotationDeg: Double = 0
     
     @State private var taskCategoryToDelete: MDTaskCategory? = nil
     @State private var showDeleteAlert: Bool = false
@@ -66,10 +63,10 @@ struct MDTaskCategoriesView: View {
         grocyVM.deleteMDObject(object: .task_categories, id: toDelID, completion: { result in
             switch result {
             case let .success(message):
-                print(message)
+                grocyVM.postLog(message: "Task category delete successful. \(message)", type: .info)
                 updateData()
             case let .failure(error):
-                print("\(error)")
+                grocyVM.postLog(message: "Task category delete failed. \(error)", type: .error)
                 toastType = .failDelete
             }
         })
@@ -92,15 +89,6 @@ struct MDTaskCategoriesView: View {
                     ToolbarItem(placement: .primaryAction, content: {
                         HStack{
                             Button(action: {
-                                withAnimation {
-                                    self.reloadRotationDeg += 360
-                                }
-                                updateData()
-                            }, label: {
-                                Image(systemName: MySymbols.reload)
-                                    .rotationEffect(Angle.degrees(reloadRotationDeg))
-                            })
-                            Button(action: {
                                 showAddTaskCategory.toggle()
                             }, label: {Image(systemName: MySymbols.new)})
 //                            .popover(isPresented: self.$showAddTaskCategory, content: {
@@ -120,39 +108,23 @@ struct MDTaskCategoriesView: View {
     var bodyContent: some View {
         content
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    HStack{
-                        Button(action: {
-                            isSearching.toggle()
-                        }, label: {Image(systemName: MySymbols.search)})
-                        Button(action: {
-                            withAnimation {
-                                self.reloadRotationDeg += 360
-                            }
-                            updateData()
-                        }, label: {
-                            Image(systemName: MySymbols.reload)
-                                .rotationEffect(Angle.degrees(reloadRotationDeg))
-                        })
+                ToolbarItem(placement: .primaryAction, content: {
                         Button(action: {
                             showAddTaskCategory.toggle()
                         }, label: {Image(systemName: MySymbols.new)})
-                    }
-                }
+                })
             }
             .navigationTitle(LocalizedStringKey("str.md.taskCategories"))
             .sheet(isPresented: self.$showAddTaskCategory, content: {
                     NavigationView {
                         MDTaskCategoryFormView(isNewTaskCategory: true, showAddTaskCategory: $showAddTaskCategory, toastType: $toastType)
-                    } })
+                    }
+            })
     }
     #endif
     
     var content: some View {
         List(){
-            #if os(iOS)
-            if isSearching { SearchBar(text: $searchString, placeholder: "str.md.search") }
-            #endif
             if grocyVM.mdTaskCategories.isEmpty {
                 Text(LocalizedStringKey("str.md.taskCategories.empty"))
             } else if filteredTaskCategories.isEmpty {
@@ -172,8 +144,12 @@ struct MDTaskCategoriesView: View {
             }
             .onDelete(perform: delete)
         }
-        .onAppear(perform: { grocyVM.requestData(objects: [.task_categories], ignoreCached: false) })
-        .animation(.default)
+        .onAppear(perform: {
+            grocyVM.requestData(objects: [.task_categories], ignoreCached: false)
+        })
+        .searchable(LocalizedStringKey("str.search"), text: $searchString)
+        .refreshable(action: updateData)
+        .animation(.default, value: filteredTaskCategories.count)
         .toast(item: $toastType, isSuccess: Binding.constant(toastType == .successAdd || toastType == .successEdit), content: { item in
             switch item {
             case .successAdd:
@@ -188,15 +164,12 @@ struct MDTaskCategoriesView: View {
                 Label(LocalizedStringKey("str.md.delete.fail"), systemImage: MySymbols.failure)
             }
         })
-        .alert(isPresented: $showDeleteAlert) {
-            Alert(title: Text(LocalizedStringKey("str.md.taskCategory.delete.confirm")),
-                  message: Text(taskCategoryToDelete?.name ?? "error"),
-                  primaryButton: .destructive(Text(LocalizedStringKey("str.delete")))
-                    {
-                        deleteTaskCategory(toDelID: taskCategoryToDelete?.id ?? "")
-                    },
-                  secondaryButton: .cancel())
-        }
+        .alert(LocalizedStringKey("str.md.taskCategory.delete.confirm"), isPresented: $showDeleteAlert, actions: {
+            Button(LocalizedStringKey("str.cancel"), role: .cancel) { }
+            Button(LocalizedStringKey("str.delete"), role: .destructive) {
+                deleteTaskCategory(toDelID: taskCategoryToDelete?.id ?? "")
+            }
+        }, message: { Text(taskCategoryToDelete?.name ?? "error") })
     }
 }
 

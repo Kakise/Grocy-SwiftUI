@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import URLImage
 
 struct MDLocationRowView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared

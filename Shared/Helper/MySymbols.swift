@@ -51,6 +51,7 @@ struct MySymbols {
     static let share = "square.and.arrow.up"
     static let cancel = "xmark.circle.fill"
     static let upload = "square.and.arrow.up"
+    static let save = "square.and.arrow.down"
     
     static let filter = "line.horizontal.3.decrease.circle"
     static let reload = "arrow.triangle.2.circlepath"

@@ -59,6 +59,7 @@ private struct StockFilterItemView: View {
                 filteredStatus = ProductStatus.all
             }
         }
+        .animation(.default, value: filteredStatus)
     }
 }
 

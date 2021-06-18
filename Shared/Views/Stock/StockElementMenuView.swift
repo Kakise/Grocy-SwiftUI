@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct StockTableMenuView: View {
+struct StockElementMenuView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
     var stockElement: StockElement
@@ -33,7 +33,7 @@ struct StockTableMenuView: View {
                 activeSheet = .addToShL
             }, label: {
                 Label(LocalizedStringKey("str.stock.tbl.menu.addToShL"), systemImage: MySymbols.addToShoppingList)
-                    .labelStyle(TextIconLabelStyle())
+                    .labelStyle(.titleAndIcon)
             })
             Divider()
             Group{
@@ -42,28 +42,28 @@ struct StockTableMenuView: View {
                     activeSheet = .productPurchase
                 }, label: {
                     Label(LocalizedStringKey("str.stock.buy"), systemImage: MySymbols.purchase)
-                        .labelStyle(TextIconLabelStyle())
+                        .labelStyle(.titleAndIcon)
                 })
                 Button(action: {
                     selectedStockElement = stockElement
                     activeSheet = .productConsume
                 }, label: {
                     Label(LocalizedStringKey("str.stock.consume"), systemImage: MySymbols.consume)
-                        .labelStyle(TextIconLabelStyle())
+                        .labelStyle(.titleAndIcon)
                 })
                 Button(action: {
                     selectedStockElement = stockElement
                     activeSheet = .productTransfer
                 }, label: {
                     Label(LocalizedStringKey("str.stock.transfer"), systemImage: MySymbols.transfer)
-                        .labelStyle(TextIconLabelStyle())
+                        .labelStyle(.titleAndIcon)
                 })
                 Button(action: {
                     selectedStockElement = stockElement
                     activeSheet = .productInventory
                 }, label: {
                     Label(LocalizedStringKey("str.stock.inventory"), systemImage: MySymbols.inventory)
-                        .labelStyle(TextIconLabelStyle())
+                        .labelStyle(.titleAndIcon)
                 })
             }
             Divider()

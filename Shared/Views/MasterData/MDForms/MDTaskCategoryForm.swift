@@ -10,7 +10,7 @@ import SwiftUI
 struct MDTaskCategoryFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstAppear: Bool = true
     @State private var isProcessing: Bool = false
@@ -47,13 +47,13 @@ struct MDTaskCategoryFormView: View {
     }
     
     private func finishForm() {
-        #if os(iOS)
-        presentationMode.wrappedValue.dismiss()
-        #elseif os(macOS)
+#if os(iOS)
+        dismiss()
+#elseif os(macOS)
         if isNewTaskCategory {
             showAddTaskCategory = false
         }
-        #endif
+#endif
     }
     
     private func saveTaskCategory() {
@@ -67,7 +67,6 @@ struct MDTaskCategoryFormView: View {
                 case let .success(message):
                     grocyVM.postLog(message: "Task category add successful. \(message)", type: .info)
                     toastType = .successAdd
-                    resetForm()
                     updateData()
                     finishForm()
                 case let .failure(error):
@@ -94,20 +93,18 @@ struct MDTaskCategoryFormView: View {
     }
     
     var body: some View {
-        #if os(macOS)
+#if os(macOS)
         ScrollView {
             content
                 .padding()
         }
-        #elseif os(iOS)
+#elseif os(iOS)
         content
             .navigationTitle(isNewTaskCategory ? LocalizedStringKey("str.md.taskCategory.new") : LocalizedStringKey("str.md.taskCategory.edit"))
             .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
                     if isNewTaskCategory {
-                        Button(LocalizedStringKey("str.cancel")) {
-                            finishForm()
-                        }
+                        Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
@@ -116,26 +113,18 @@ struct MDTaskCategoryFormView: View {
                     }
                     .disabled(!isNameCorrect || isProcessing)
                 }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    // Back not shown without it
-                    if !isNewTaskCategory{
-                        Text("")
-                    }
-                }
             })
-        #endif
+#endif
     }
     
     var content: some View {
         Form {
-            Section(header: Text(LocalizedStringKey("str.md.taskCategory.info"))){
-                MyTextField(textToEdit: $name, description: "str.md.taskCategory.name", isCorrect: $isNameCorrect, leadingIcon: "tag", emptyMessage: "str.md.productGroup.name.required", errorMessage: "str.md.taskCategory.name.exists")
-                    .onChange(of: name, perform: { value in
-                        isNameCorrect = checkNameCorrect()
-                    })
-                MyTextField(textToEdit: $mdTaskCategoryDescription, description: "str.md.description", isCorrect: Binding.constant(true), leadingIcon: MySymbols.description)
-            }
-            #if os(macOS)
+            MyTextField(textToEdit: $name, description: "str.md.taskCategory.name", isCorrect: $isNameCorrect, leadingIcon: "tag", emptyMessage: "str.md.productGroup.name.required", errorMessage: "str.md.taskCategory.name.exists")
+                .onChange(of: name, perform: { value in
+                    isNameCorrect = checkNameCorrect()
+                })
+            MyTextField(textToEdit: $mdTaskCategoryDescription, description: "str.md.description", isCorrect: Binding.constant(true), leadingIcon: MySymbols.description)
+#if os(macOS)
             HStack{
                 Button(LocalizedStringKey("str.cancel")) {
                     if isNewTaskCategory{
@@ -152,7 +141,7 @@ struct MDTaskCategoryFormView: View {
                 .disabled(!isNameCorrect || isProcessing)
                 .keyboardShortcut(.defaultAction)
             }
-            #endif
+#endif
         }
         .onAppear(perform: {
             if firstAppear {
@@ -164,23 +153,23 @@ struct MDTaskCategoryFormView: View {
     }
 }
 
-//struct MDTaskCategoryFormView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        #if os(macOS)
-//        Group {
-//            MDProductGroupFormView(isNewProductGroup: true, toastType: Binding.constant(nil))
-//            MDProductGroupFormView(isNewProductGroup: false, productGroup: MDProductGroup(id: "0", name: "Name", mdProductGroupDescription: "Description", rowCreatedTimestamp: "", userfields: nil), toastType: Binding.constant(nil))
-//        }
-//        #else
-//        Group {
-//            NavigationView {
-//                MDProductGroupFormView(isNewProductGroup: true, toastType: Binding.constant(nil))
-//            }
-//            NavigationView {
-//                MDProductGroupFormView(isNewProductGroup: false, productGroup: MDProductGroup(id: "0", name: "Name", mdProductGroupDescription: "Description", rowCreatedTimestamp: "", userfields: nil), toastType: Binding.constant(nil))
-//            }
-//        }
-//        #endif
-//    }
-//}
+struct MDTaskCategoryFormView_Previews: PreviewProvider {
+    static var previews: some View {
+        //        #if os(macOS)
+        //        Group {
+        //            MDProductGroupFormView(isNewProductGroup: true, toastType: Binding.constant(nil))
+        //            MDProductGroupFormView(isNewProductGroup: false, productGroup: MDProductGroup(id: "0", name: "Name", mdProductGroupDescription: "Description", rowCreatedTimestamp: "", userfields: nil), toastType: Binding.constant(nil))
+        //        }
+        //        #else
+        Group {
+            NavigationView {
+                MDTaskCategoryFormView(isNewTaskCategory: true, showAddTaskCategory: Binding.constant(true), toastType: Binding.constant(nil))
+            }
+            NavigationView {
+                MDTaskCategoryFormView(isNewTaskCategory: false, taskCategory: MDTaskCategory(id: "0", name: "Name", mdTaskCategoryDescription: "Description", rowCreatedTimestamp: "", userfields: nil), showAddTaskCategory: Binding.constant(true), toastType: Binding.constant(nil))
+            }
+        }
+        //        #endif
+    }
+}
 

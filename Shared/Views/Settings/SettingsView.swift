@@ -10,7 +10,7 @@ import SwiftUI
 struct SettingsView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State var showGrocyVersion: Bool = false
     @State var showUserInfo: Bool = false
@@ -21,7 +21,10 @@ struct SettingsView: View {
     @AppStorage("isLoggedIn") var isLoggedIn: Bool = false
     @AppStorage("grocyServerURL") var grocyServerURL: String = ""
     @AppStorage("grocyAPIKey") var grocyAPIKey: String = ""
-    @AppStorage("simplifiedStockView") var simplifiedStockView: Bool = true
+    
+    #if os(macOS)
+    @AppStorage("simplifiedStockView") var simplifiedStockView: Bool = false
+    #endif
     
     @AppStorage("localizationKey") var localizationKey: String = "en"
     @AppStorage("devMode") private var devMode: Bool = false
@@ -80,7 +83,6 @@ struct SettingsView: View {
                 }
             }
             Section(header: Text("App")){
-                MyToggle(isOn: $simplifiedStockView, description: "str.settings.simplifiedStockView", descriptionInfo: nil, icon: "tablecells")
                 Picker(selection: $localizationKey, label: Label(LocalizedStringKey("str.settings.appLanguage"), systemImage: "flag").foregroundColor(.primary), content: {
                     Text("🇬🇧 English").tag("en")
                     Text("🇩🇪 Deutsch").tag("de")
@@ -107,6 +109,7 @@ struct SettingsView: View {
     }
     #endif
     
+    #if os(macOS)
     var contentMac: some View {
         VStack {
             if isLoggedIn {
@@ -141,7 +144,7 @@ struct SettingsView: View {
                     }
                     
                     Button(action: {
-                        self.presentationMode.wrappedValue.dismiss()
+                        dismiss()
                         grocyVM.logout()
                     }, label: { Label(LocalizedStringKey("str.settings.logout"), systemImage: "square.and.arrow.up").foregroundColor(.primary)})
                     Button(action: {grocyVM.deleteAllCachedData()}, label: {Label(LocalizedStringKey("str.settings.resetCache"), systemImage: "trash")})
@@ -184,6 +187,7 @@ struct SettingsView: View {
             updateData()
         })
     }
+    #endif
 }
 
 struct SettingsView_Previews: PreviewProvider {

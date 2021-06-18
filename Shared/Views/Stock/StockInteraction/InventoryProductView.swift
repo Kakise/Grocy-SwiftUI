@@ -10,7 +10,7 @@ import SwiftUI
 struct InventoryProductView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstAppear: Bool = true
     @State private var isProcessingAction: Bool = false
@@ -118,11 +118,7 @@ struct InventoryProductView: View {
         #else
         content
             .toolbar(content: {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(LocalizedStringKey("str.cancel")) {
-                        self.presentationMode.wrappedValue.dismiss()
-                    }
-                }
+                ToolbarItem(placement: .cancellationAction, content: { Button("str.cancel", role: .cancel, action: { dismiss() }) })
             })
         #endif
     }
@@ -205,9 +201,9 @@ struct InventoryProductView: View {
             }
         })
         .toolbar(content: {
-            ToolbarItem(placement: .confirmationAction, content: {
+            ToolbarItemGroup(placement: .navigationBarTrailing, content: {
                 if isProcessingAction {
-                    ProgressView().progressViewStyle(CircularProgressViewStyle())
+                    ProgressView().progressViewStyle(.circular)
                 } else {
                     Button(action: resetForm, label: {
                         Label(LocalizedStringKey("str.clear"), systemImage: MySymbols.cancel)
@@ -215,20 +211,17 @@ struct InventoryProductView: View {
                     })
                     .keyboardShortcut("r", modifiers: [.command])
                 }
-            })
-            ToolbarItem(placement: .confirmationAction, content: {
                 Button(action: {
                     inventoryProduct()
                     resetForm()
                 }, label: {
                     Label(LocalizedStringKey("str.stock.inventory.product.inventory"), systemImage: MySymbols.inventory)
-                        .labelStyle(TextIconLabelStyle())
+                        .labelStyle(.titleAndIcon)
                 })
                 .disabled(!isFormValid || isProcessingAction)
                 .keyboardShortcut("s", modifiers: [.command])
             })
         })
-        .animation(.default)
         .navigationTitle(LocalizedStringKey("str.stock.inventory"))
     }
 }

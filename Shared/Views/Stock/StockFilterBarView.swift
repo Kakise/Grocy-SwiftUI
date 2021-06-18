@@ -10,39 +10,20 @@ import SwiftUI
 struct StockFilterBar: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Binding var searchString: String
     @Binding var filteredLocation: String?
     @Binding var filteredProductGroup: String?
     @Binding var filteredStatus: ProductStatus
     
     var body: some View {
         VStack{
-            #if os(iOS)
-            if (UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone) {
-                SearchBar(text: $searchString, placeholder: "str.search")
-                if !searchString.isEmpty {
-                    Button("Exit Search") {
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    }
-                }
-            }
-            #endif
             HStack{
-                #if os(iOS)
-                if !(UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone) {
-                    SearchBar(text: $searchString, placeholder: "str.search")
-                }
-                Spacer()
-                #endif
-                HStack{
-                    Image(systemName: MySymbols.filter)
-                    Picker(selection: $filteredLocation, label: Text(LocalizedStringKey("str.stock.location")), content: {
-                        Text(LocalizedStringKey("str.stock.all")).tag(nil as String?)
-                        ForEach(grocyVM.mdLocations, id:\.id) { location in
-                            Text(location.name).tag(location.id as String?)
-                        }
-                    }).pickerStyle(MenuPickerStyle())
-                }
+                Image(systemName: MySymbols.filter)
+                Picker(selection: $filteredLocation, label: Text(LocalizedStringKey("str.stock.location")), content: {
+                    Text(LocalizedStringKey("str.stock.all")).tag(nil as String?)
+                    ForEach(grocyVM.mdLocations, id:\.id) { location in
+                        Text(location.name).tag(location.id as String?)
+                    }
+                }).pickerStyle(MenuPickerStyle())
                 Spacer()
                 HStack{
                     Image(systemName: MySymbols.filter)
@@ -80,6 +61,6 @@ struct StockFilterBar: View {
 
 struct StockFilterBar_Previews: PreviewProvider {
     static var previews: some View {
-        StockFilterBar(searchString: Binding.constant(""), filteredLocation: Binding.constant(nil), filteredProductGroup: Binding.constant(nil), filteredStatus: Binding.constant(ProductStatus.all))
+        StockFilterBar(filteredLocation: Binding.constant(nil), filteredProductGroup: Binding.constant(nil), filteredStatus: Binding.constant(ProductStatus.all))
     }
 }

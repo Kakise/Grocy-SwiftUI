@@ -125,16 +125,16 @@ struct QuickScanModeView: View {
                     .labelStyle(IconAboveTextLabelStyle())
                     .tag(QuickScanMode.purchase)
             })
-            .pickerStyle(SegmentedPickerStyle())
+                .pickerStyle(.segmented)
             Spacer()
-            Button(action: {
-                flashOn.toggle()
-                toggleTorch(on: flashOn)
-            }, label: {
+            Toggle(isOn: $flashOn, label: {
                 Image(systemName: flashOn ? "bolt.circle" : "bolt.slash.circle")
                     .font(.title)
             })
-            .disabled(!checkForTorch())
+                .toggleStyle(.button)
+                .animation(.default, value: flashOn)
+                .onChange(of: flashOn, perform: { flashState in toggleTorch(on: flashState) })
+                .disabled(!checkForTorch())
         }
     }
     

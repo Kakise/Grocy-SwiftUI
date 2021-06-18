@@ -10,7 +10,7 @@ import SwiftUI
 struct ShoppingListEntryFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstAppear: Bool = true
     
@@ -46,7 +46,7 @@ struct ShoppingListEntryFormView: View {
     
     private func finishForm() {
         #if os(iOS)
-        self.presentationMode.wrappedValue.dismiss()
+        dismiss()
         #elseif os(macOS)
         NSApp.sendAction(#selector(NSPopover.performClose(_:)), to: nil, from: nil)
         #endif
@@ -105,10 +105,7 @@ struct ShoppingListEntryFormView: View {
                 .navigationTitle(isNewShoppingListEntry ? LocalizedStringKey("str.shL.entryForm.new.title") : LocalizedStringKey("str.shL.entryForm.edit.title"))
                 .toolbar{
                     ToolbarItem(placement: .cancellationAction) {
-                        Button(LocalizedStringKey("str.cancel")) {
-                            finishForm()
-                        }
-                        .keyboardShortcut(.cancelAction)
+                        Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button(LocalizedStringKey("str.save")) {
@@ -150,7 +147,7 @@ struct ShoppingListEntryFormView: View {
                 }).disabled(true)
             }
             
-            Section(header: Label(LocalizedStringKey("str.shL.entryForm.note"), systemImage: "square.and.pencil").labelStyle(TextIconLabelStyle()).font(.headline)) {
+            Section(header: Label(LocalizedStringKey("str.shL.entryForm.note"), systemImage: "square.and.pencil").labelStyle(.titleAndIcon).font(.headline)) {
                 TextEditor(text: $note)
                     .frame(height: 50)
             }

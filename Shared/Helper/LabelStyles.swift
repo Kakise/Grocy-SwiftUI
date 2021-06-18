@@ -7,15 +7,6 @@
 
 import SwiftUI
 
-struct TextIconLabelStyle: LabelStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack {
-            configuration.title
-            configuration.icon
-        }
-    }
-}
-
 struct IconAboveTextLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         VStack(alignment: .center) {

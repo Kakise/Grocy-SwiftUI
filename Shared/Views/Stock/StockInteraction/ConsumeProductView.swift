@@ -10,7 +10,7 @@ import SwiftUI
 struct ConsumeProductView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstAppear: Bool = true
     @State private var isProcessingAction: Bool = false
@@ -155,11 +155,7 @@ struct ConsumeProductView: View {
         #else
         content
             .toolbar(content: {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("str.cancel") {
-                        self.presentationMode.wrappedValue.dismiss()
-                    }
-                }
+                ToolbarItem(placement: .cancellationAction, content: { Button("str.cancel", role: .cancel, action: { dismiss() }) })
             })
         #endif
     }
@@ -242,7 +238,6 @@ struct ConsumeProductView: View {
                 firstAppear = false
             }
         })
-        .animation(.default)
         .toast(item: $toastType, isSuccess: Binding.constant(toastType == .successConsume || toastType == .successOpen), content: { item in
             switch item {
             case .successConsume:
@@ -256,9 +251,9 @@ struct ConsumeProductView: View {
             }
         })
         .toolbar(content: {
-            ToolbarItem(placement: .confirmationAction, content: {
+            ToolbarItemGroup(placement: .navigationBarTrailing, content: {
                 if isProcessingAction {
-                    ProgressView().progressViewStyle(CircularProgressViewStyle())
+                    ProgressView().progressViewStyle(.circular)
                 } else {
                     Button(action: resetForm, label: {
                         Label(LocalizedStringKey("str.clear"), systemImage: MySymbols.cancel)
@@ -266,8 +261,6 @@ struct ConsumeProductView: View {
                     })
                     .keyboardShortcut("r", modifiers: [.command])
                 }
-            })
-            ToolbarItem(placement: .confirmationAction, content: {
                 Button(action: {
                     openProduct()
                 }, label: {
@@ -276,17 +269,15 @@ struct ConsumeProductView: View {
                         Label(LocalizedStringKey("str.stock.consume.product.open"), systemImage: MySymbols.open)
                     } else {
                         Label(LocalizedStringKey("str.stock.consume.product.open"), systemImage: MySymbols.open)
-                            .labelStyle(TextIconLabelStyle())
+                            .labelStyle(.titleAndIcon)
                     }
                     #else
                     Label(LocalizedStringKey("str.stock.consume.product.open"), systemImage: MySymbols.open)
-                        .labelStyle(TextIconLabelStyle())
+                        .labelStyle(.titleAndIcon)
                     #endif
                 })
                 .disabled(!isFormValid || isProcessingAction)
                 .keyboardShortcut("o", modifiers: [.command])
-            })
-            ToolbarItem(placement: .confirmationAction, content: {
                 Button(action: {
                     consumeProduct()
                 }, label: {
@@ -295,11 +286,11 @@ struct ConsumeProductView: View {
                         Label(LocalizedStringKey("str.stock.consume.product.consume"), systemImage: MySymbols.consume)
                     } else {
                         Label(LocalizedStringKey("str.stock.consume.product.consume"), systemImage: MySymbols.consume)
-                            .labelStyle(TextIconLabelStyle())
+                            .labelStyle(.titleAndIcon)
                     }
                     #else
                     Label(LocalizedStringKey("str.stock.consume.product.consume"), systemImage: MySymbols.consume)
-                        .labelStyle(TextIconLabelStyle())
+                        .labelStyle(.titleAndIcon)
                     #endif
                 })
                 .disabled(!isFormValid || isProcessingAction)

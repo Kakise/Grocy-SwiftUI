@@ -26,15 +26,12 @@ struct MDUserFieldRowView: View {
 struct MDUserFieldsView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
-    @State private var isSearching: Bool = false
     @State private var searchString: String = ""
     @State private var showAddUserField: Bool = false
     
     @State private var shownEditPopover: MDUserField? = nil
-    
-    @State private var reloadRotationDeg: Double = 0
     
     @State private var userFieldToDelete: MDUserField? = nil
     @State private var showDeleteAlert: Bool = false
@@ -61,10 +58,10 @@ struct MDUserFieldsView: View {
         grocyVM.deleteMDObject(object: .userfields, id: toDelID, completion: { result in
             switch result {
             case let .success(message):
-                print(message)
+                grocyVM.postLog(message: "User field delete successful. \(message)", type: .info)
                 updateData()
             case let .failure(error):
-                print("\(error)")
+                grocyVM.postLog(message: "User field delete failed. \(error)", type: .error)
                 toastType = .failDelete
             }
         })
@@ -83,80 +80,54 @@ struct MDUserFieldsView: View {
         }
     }
     
-    #if os(macOS)
+#if os(macOS)
     var bodyContent: some View {
         NavigationView{
             content
                 .toolbar(content: {
                     ToolbarItem(placement: .primaryAction, content: {
-                        HStack{
-                            Button(action: {
-                                withAnimation {
-                                    self.reloadRotationDeg += 360
-                                }
-                                updateData()
-                            }, label: {
-                                Image(systemName: MySymbols.reload)
-                                    .rotationEffect(Angle.degrees(reloadRotationDeg))
-                            })
-                            Button(action: {
-                                showAddUserField.toggle()
-                            }, label: {Image(systemName: MySymbols.new)})
-                        }
-                    })
-                    ToolbarItem(placement: .automatic, content: {
-                        ToolbarSearchField(searchTerm: $searchString)
+                        Button(action: {
+                            showAddUserField.toggle()
+                        }, label: {Image(systemName: MySymbols.new)})
                     })
                 })
                 .frame(minWidth: Constants.macOSNavWidth)
         }
         .navigationTitle(LocalizedStringKey("str.md.userFields"))
     }
-    #elseif os(iOS)
+#elseif os(iOS)
     var bodyContent: some View {
         content
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    HStack{
-                        Button(action: {
-                            isSearching.toggle()
-                        }, label: {Image(systemName: MySymbols.search)})
-                        Button(action: {
-                            updateData()
-                        }, label: {
-                            Image(systemName: MySymbols.reload)
-                        })
-                        Button(action: {
-                            showAddUserField.toggle()
-                        }, label: {Image(systemName: MySymbols.new)})
-                    }
-                }
+                ToolbarItem(placement: .primaryAction, content: {
+                    Button(action: {
+                        showAddUserField.toggle()
+                    }, label: {Image(systemName: MySymbols.new)})
+                })
             }
             .navigationTitle(LocalizedStringKey("str.md.userFields"))
             .sheet(isPresented: self.$showAddUserField, content: {
-                    NavigationView {
-                        MDUserFieldFormView(isNewUserField: true, showAddUserField: $showAddUserField, toastType: $toastType)
-                    } })
+                NavigationView {
+                    MDUserFieldFormView(isNewUserField: true, showAddUserField: $showAddUserField, toastType: $toastType)
+                }
+            })
     }
-    #endif
+#endif
     
     var content: some View {
         List(){
-            #if os(iOS)
-            if isSearching { SearchBar(text: $searchString, placeholder: "str.md.search") }
-            #endif
             if grocyVM.mdUserFields.isEmpty {
                 Text(LocalizedStringKey("str.md.userFields.empty"))
             } else if filteredUserFields.isEmpty {
                 Text(LocalizedStringKey("str.noSearchResult"))
             }
-            #if os(macOS)
+#if os(macOS)
             if showAddUserField {
                 NavigationLink(destination: MDUserFieldFormView(isNewUserField: true, showAddUserField: $showAddUserField, toastType: $toastType), isActive: $showAddUserField, label: {
                     NewMDRowLabel(title: "str.md.userField.new")
                 })
             }
-            #endif
+#endif
             ForEach(filteredUserFields, id:\.id) { userField in
                 NavigationLink(destination: MDUserFieldFormView(isNewUserField: false, userField: userField, showAddUserField: Binding.constant(false), toastType: $toastType)) {
                     MDUserFieldRowView(userField: userField)
@@ -167,7 +138,9 @@ struct MDUserFieldsView: View {
         .onAppear(perform: {
             grocyVM.requestData(objects: [.userfields], ignoreCached: false)
         })
-        .animation(.default)
+        .searchable(LocalizedStringKey("str.search"), text: $searchString)
+        .refreshable(action: updateData)
+        .animation(.default, value: filteredUserFields.count)
         .toast(item: $toastType, isSuccess: Binding.constant(toastType == .successAdd || toastType == .successEdit), content: { item in
             switch item {
             case .successAdd:
@@ -182,11 +155,12 @@ struct MDUserFieldsView: View {
                 Label(LocalizedStringKey("str.md.delete.fail"), systemImage: MySymbols.failure)
             }
         })
-        .alert(isPresented: $showDeleteAlert) {
-            Alert(title: Text(LocalizedStringKey("str.md.userField.delete.confirm")), message: Text(userFieldToDelete?.name ?? "error"), primaryButton: .destructive(Text(LocalizedStringKey("str.delete"))) {
+        .alert(LocalizedStringKey("str.md.userField.delete.confirm"), isPresented: $showDeleteAlert, actions: {
+            Button(LocalizedStringKey("str.cancel"), role: .cancel) { }
+            Button(LocalizedStringKey("str.delete"), role: .destructive) {
                 deleteUserField(toDelID: userFieldToDelete?.id ?? "")
-            }, secondaryButton: .cancel())
-        }
+            }
+        }, message: { Text(userFieldToDelete?.name ?? "error") })
     }
 }
 
@@ -194,13 +168,13 @@ struct MDUserFieldsView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             MDUserFieldRowView(userField: MDUserField(id: "1", entity: "locations", name: "Test", caption: "caption", type: "1", showAsColumnInTables: "0", rowCreatedTimestamp: "ts", config: nil, sortNumber: nil, userfields: nil))
-            #if os(macOS)
+#if os(macOS)
             MDUserFieldsView()
-            #else
+#else
             NavigationView() {
                 MDUserFieldsView()
             }
-            #endif
+#endif
         }
     }
 }

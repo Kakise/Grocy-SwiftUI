@@ -10,7 +10,7 @@ import SwiftUI
 struct MDUserFieldFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstAppear: Bool = true
     @State private var isProcessing: Bool = false
@@ -45,7 +45,7 @@ struct MDUserFieldFormView: View {
         caption = userField?.caption ?? ""
         sortNumber = Int(userField?.sortNumber ?? "") ?? -1
         type = UserFieldType(rawValue: userField?.type ?? "") ?? UserFieldType.none
-        showAsColumnInTables = Bool(userField?.showAsColumnInTables ?? "0") ?? false
+        showAsColumnInTables = ((userField?.showAsColumnInTables ?? "0") as NSString).boolValue
         isNameCorrect = checkNameCorrect()
         isCaptionCorrect = checkCaptionCorrect()
     }
@@ -56,7 +56,7 @@ struct MDUserFieldFormView: View {
     
     private func finishForm() {
         #if os(iOS)
-        presentationMode.wrappedValue.dismiss()
+        dismiss()
         #elseif os(macOS)
         if isNewUserField {
             showAddUserField = false
@@ -77,7 +77,6 @@ struct MDUserFieldFormView: View {
                     case let .success(message):
                         grocyVM.postLog(message: "Userfield add successful. \(message)", type: .info)
                         toastType = .successAdd
-                        resetForm()
                         updateData()
                         finishForm()
                     case let .failure(error):
@@ -116,9 +115,7 @@ struct MDUserFieldFormView: View {
             .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
                     if isNewUserField {
-                        Button(LocalizedStringKey("str.cancel")) {
-                            finishForm()
-                        }
+                        Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
@@ -126,12 +123,6 @@ struct MDUserFieldFormView: View {
                         saveUserField()
                     }
                     .disabled(!isNameCorrect || isProcessing)
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    // Back not shown without it
-                    if !isNewUserField{
-                        Text("")
-                    }
                 }
             })
         #endif

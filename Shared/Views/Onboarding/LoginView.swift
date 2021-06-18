@@ -337,8 +337,8 @@ struct LoginStatusView: View {
             case .loading:
                 ProgressView()
                     .scaleEffect(1.5, anchor: .center)
-                    .progressViewStyle(CircularProgressViewStyle(tint: .primary))
-                    .onAppear(perform: {tryLogin()})
+                    .progressViewStyle(.circular)
+                    .onAppear(perform: tryLogin)
             case .success:
                 Text("success")
             case .fail:
@@ -429,7 +429,6 @@ struct LoginView: View {
             LoginInfoView()
             Spacer()
         }
-        .animation(.default)
     }
 }
 

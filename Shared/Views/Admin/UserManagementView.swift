@@ -130,7 +130,6 @@ struct UserManagementView: View {
                 EmptyView()
             }
         })
-        .animation(.default)
     }
 }
 

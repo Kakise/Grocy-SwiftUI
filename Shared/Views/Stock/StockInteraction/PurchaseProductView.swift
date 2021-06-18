@@ -10,7 +10,7 @@ import SwiftUI
 struct PurchaseProductView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     @AppStorage("localizationKey") var localizationKey: String = "en"
     
     @State private var firstAppear: Bool = true
@@ -113,11 +113,7 @@ struct PurchaseProductView: View {
         #else
         content
             .toolbar(content: {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(LocalizedStringKey("str.cancel")) {
-                        self.presentationMode.wrappedValue.dismiss()
-                    }
-                }
+                ToolbarItem(placement: .cancellationAction, content: { Button("str.cancel", role: .cancel, action: { dismiss() }) })
             })
         #endif
     }
@@ -191,7 +187,6 @@ struct PurchaseProductView: View {
                         Text("").tag(nil as String?)
                         ForEach(grocyVM.mdLocations, id:\.id) { location in
                             Text(location.id == product?.locationID ? LocalizedStringKey("str.stock.buy.product.location.default \(location.name)") : LocalizedStringKey(location.name)).tag(location.id as String?)
-//                            Text(location.name).tag(location.id as String?)
                         }
                        })
             }
@@ -212,9 +207,9 @@ struct PurchaseProductView: View {
             }
         })
         .toolbar(content: {
-            ToolbarItem(placement: .confirmationAction, content: {
+            ToolbarItemGroup(placement: .navigationBarTrailing, content: {
                 if isProcessingAction {
-                    ProgressView().progressViewStyle(CircularProgressViewStyle())
+                    ProgressView().progressViewStyle(.circular)
                 } else {
                     Button(action: resetForm, label: {
                         Label(LocalizedStringKey("str.clear"), systemImage: MySymbols.cancel)
@@ -222,17 +217,14 @@ struct PurchaseProductView: View {
                     })
                     .keyboardShortcut("r", modifiers: [.command])
                 }
-            })
-            ToolbarItem(placement: .confirmationAction, content: {
                 Button(action: purchaseProduct, label: {
                     Label(LocalizedStringKey("str.stock.buy.product.buy"), systemImage: MySymbols.purchase)
-                        .labelStyle(TextIconLabelStyle())
+                        .labelStyle(.titleAndIcon)
                 })
                 .disabled(!isFormValid || isProcessingAction)
                 .keyboardShortcut("s", modifiers: [.command])
             })
         })
-        .animation(.default)
         .navigationTitle(LocalizedStringKey("str.stock.buy"))
     }
 }

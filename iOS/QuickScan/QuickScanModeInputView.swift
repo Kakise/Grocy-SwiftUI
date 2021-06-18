@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import URLImage
 
 enum ConsumeAmountMode {
     case one, barcode, custom, all
@@ -14,7 +13,7 @@ enum ConsumeAmountMode {
 
 struct QuickScanModeInputView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstOpen: Bool = true
     
@@ -177,7 +176,7 @@ struct QuickScanModeInputView: View {
             lastPurchaseShoppingLocationID = purchaseShoppingLocationID
             lastPurchaseLocationID = purchaseLocationID
         }
-        self.presentationMode.wrappedValue.dismiss()
+        dismiss()
     }
     
     private func restoreLastInput() {
@@ -204,12 +203,14 @@ struct QuickScanModeInputView: View {
                                 if let base64Encoded = utf8str?.base64EncodedString(options: Data.Base64EncodingOptions(rawValue: 0)) {
                                     if let pictureURL = grocyVM.getPictureURL(groupName: "productpictures", fileName: base64Encoded) {
                                         if let url = URL(string: pictureURL) {
-                                            URLImage(url: url) { image in
+                                            AsyncImage(url: url, content: { image in
                                                 image
                                                     .resizable()
                                                     .aspectRatio(contentMode: .fit)
                                                     .background(Color.white)
-                                            }
+                                            }, placeholder: {
+                                                ProgressView().progressViewStyle(.circular)
+                                            })
                                             .frame(width: 50, height: 50)
                                         }
                                     }
@@ -302,31 +303,28 @@ struct QuickScanModeInputView: View {
             }
             .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction, content: {
-                    Button(LocalizedStringKey("str.cancel")) {
-                        self.presentationMode.wrappedValue.dismiss()
-                    }
-                    .keyboardShortcut(.cancelAction)
+                    Button(LocalizedStringKey("str.cancel"), role: .cancel, action: { dismiss() })
                 })
                 ToolbarItemGroup(placement: .automatic, content: {
                     switch quickScanMode {
                     case .consume:
                         Button(action: consumeItem, label: {
                             Label(LocalizedStringKey("str.stock.consume.product.consume"), systemImage: MySymbols.consume)
-                                .labelStyle(TextIconLabelStyle())
+                                .labelStyle(.titleAndIcon)
                         })
                         .disabled(!isValidForm || isProcessingAction)
                         .keyboardShortcut(.defaultAction)
                     case .markAsOpened:
                         Button(action: markAsOpenedItem, label: {
                             Label(LocalizedStringKey("str.stock.consume.product.open"), systemImage: MySymbols.open)
-                                .labelStyle(TextIconLabelStyle())
+                                .labelStyle(.titleAndIcon)
                         })
                         .disabled(!isValidForm || isProcessingAction)
                         .keyboardShortcut(.defaultAction)
                     case .purchase:
                         Button(action: purchaseItem, label: {
                             Label(LocalizedStringKey("str.stock.buy.product.buy"), systemImage: MySymbols.purchase)
-                                .labelStyle(TextIconLabelStyle())
+                                .labelStyle(.titleAndIcon)
                         })
                         .disabled(!isValidForm || isProcessingAction)
                         .keyboardShortcut(.defaultAction)

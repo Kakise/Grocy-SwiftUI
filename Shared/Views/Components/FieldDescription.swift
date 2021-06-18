@@ -10,23 +10,22 @@ import SwiftUI
 struct FieldDescription: View {
     var description: String
     
+#if os(iOS)
     @State private var showDescription: Bool = false
+#endif
     
     var body: some View {
-        #if os(macOS)
         Image(systemName: "questionmark.circle.fill")
             .help(LocalizedStringKey(description))
-        #elseif os(iOS)
-        Image(systemName: "questionmark.circle.fill")
+#if os(iOS)
             .onTapGesture {
                 showDescription.toggle()
             }
-            .help(LocalizedStringKey(description))
             .popover(isPresented: $showDescription, content: {
                 Text(LocalizedStringKey(description))
                     .padding()
             })
-        #endif
+#endif
     }
 }
 

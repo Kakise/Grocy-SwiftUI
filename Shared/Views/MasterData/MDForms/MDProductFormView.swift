@@ -168,19 +168,15 @@ struct MDProductFormView: View {
             .navigationTitle(isNewProduct ? LocalizedStringKey("str.md.product.new") : LocalizedStringKey("str.md.product.edit"))
             .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
+                    if isNewProduct {
+                        Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(LocalizedStringKey("str.md.product.save")) {
                         saveProduct()
                     }
                     .disabled(!isFormValid || isProcessing)
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    // Back not shown without it
-                    if !isNewProduct{
-                        Text("")
-                    }
                 }
             })
 #endif

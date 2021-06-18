@@ -10,7 +10,7 @@ import SwiftUI
 struct UserFormView: View {
     @StateObject private var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State var username: String = ""
     @State var firstName: String = ""
@@ -44,7 +44,7 @@ struct UserFormView: View {
     
     private func finishForm() {
         #if os(iOS)
-        presentationMode.wrappedValue.dismiss()
+        dismiss()
         #elseif os(macOS)
         if isNewUser {
             NSApp.sendAction(#selector(NSPopover.performClose(_:)), to: nil, from: nil)
@@ -94,15 +94,13 @@ struct UserFormView: View {
             .navigationTitle(isNewUser ? LocalizedStringKey("str.admin.user.new.create") : LocalizedStringKey("str.admin.user.new.edit"))
             .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(LocalizedStringKey("str.cancel")) {
-                        self.presentationMode.wrappedValue.dismiss()
-                    }
+                    Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                 }
                 ToolbarItemGroup(placement: .bottomBar) {
                     Spacer()
                     Button(LocalizedStringKey("str.save")) {
                         saveUser()
-                        self.presentationMode.wrappedValue.dismiss()
+                        finishForm()
                     }
                     .keyboardShortcut(.defaultAction)
                     .disabled(!isValidUsername || !isMatchingPassword || password.isEmpty)
@@ -118,16 +116,16 @@ struct UserFormView: View {
                 .font(.headline)
             #endif
             Section(header: Text(LocalizedStringKey("str.admin.user.new.userName")).font(.title)){
-                MyTextField(textToEdit: $username, description: "str.admin.user.new.userName", isCorrect: $isValidUsername, leadingIcon: "rectangle.and.pencil.and.ellipsis", isEditing: true, emptyMessage: "str.admin.user.new.userName.required", errorMessage: "str.admin.user.new.userName.exists")
+                MyTextField(textToEdit: $username, description: "str.admin.user.new.userName", isCorrect: $isValidUsername, leadingIcon: "rectangle.and.pencil.and.ellipsis", emptyMessage: "str.admin.user.new.userName.required", errorMessage: "str.admin.user.new.userName.exists")
                     .onChange(of: username) { newValue in
                         isValidUsername = checkUsernameCorrect()
                     }
-                MyTextField(textToEdit: $firstName, description: "str.admin.user.new.firstName", isCorrect: Binding.constant(true), leadingIcon: "person", isEditing: true, errorMessage: nil)
-                MyTextField(textToEdit: $lastName, description: "str.admin.user.new.lastName", isCorrect: Binding.constant(true), leadingIcon: "person.2", isEditing: true, errorMessage: nil)
+                MyTextField(textToEdit: $firstName, description: "str.admin.user.new.firstName", isCorrect: Binding.constant(true), leadingIcon: "person", errorMessage: nil)
+                MyTextField(textToEdit: $lastName, description: "str.admin.user.new.lastName", isCorrect: Binding.constant(true), leadingIcon: "person.2", errorMessage: nil)
             }
             Section(header: Text(LocalizedStringKey("str.admin.user.new.password")).font(.title)){
-                MyTextField(textToEdit: $password, description: "str.admin.user.new.password", isCorrect: Binding.constant(true), leadingIcon: "key", isEditing: true, errorMessage: nil)
-                MyTextField(textToEdit: $passwordConfirm, description: "str.admin.user.new.password.confirm", isCorrect: $isMatchingPassword, leadingIcon: "key", isEditing: true, errorMessage: "str.admin.user.new.password.mismatch")
+                MyTextField(textToEdit: $password, description: "str.admin.user.new.password", isCorrect: Binding.constant(true), leadingIcon: "key", errorMessage: nil)
+                MyTextField(textToEdit: $passwordConfirm, description: "str.admin.user.new.password.confirm", isCorrect: $isMatchingPassword, leadingIcon: "key", errorMessage: "str.admin.user.new.password.mismatch")
             }
             #if os(macOS)
             Divider()

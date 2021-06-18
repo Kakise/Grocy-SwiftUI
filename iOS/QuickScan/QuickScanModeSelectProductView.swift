@@ -9,7 +9,7 @@ import SwiftUI
 
 struct QuickScanModeSelectProductView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var firstOpen: Bool = true
     
@@ -29,7 +29,7 @@ struct QuickScanModeSelectProductView: View {
     }
     
     private func finishForm() {
-        self.presentationMode.wrappedValue.dismiss()
+        dismiss()
     }
     
     private func addBarcodeForProduct() {
@@ -63,15 +63,12 @@ struct QuickScanModeSelectProductView: View {
             }
             .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction, content: {
-                    Button(LocalizedStringKey("str.cancel")) {
-                        self.presentationMode.wrappedValue.dismiss()
-                    }
-                    .keyboardShortcut(.cancelAction)
+                    Button(LocalizedStringKey("str.cancel"), role: .cancel, action: { dismiss() })
                 })
                 ToolbarItem(placement: .automatic, content: {
                     Button(action: addBarcodeForProduct, label: {
                         Label(LocalizedStringKey("str.quickScan.add.product.add"), systemImage: "plus")
-                            .labelStyle(TextIconLabelStyle())
+                            .labelStyle(.titleAndIcon)
                     })
                     .disabled(productID == nil)
                     .keyboardShortcut(.defaultAction)

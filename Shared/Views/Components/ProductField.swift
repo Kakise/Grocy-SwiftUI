@@ -14,7 +14,7 @@ struct ProductField: View {
     var description: String
     
     @State private var searchTerm: String = ""
-    #if os(iOS)
+#if os(iOS)
     @State private var isShowingScanner: Bool = false
     func handleScan(result: Result<String, CodeScannerView.ScanError>) {
         self.isShowingScanner = false
@@ -25,7 +25,7 @@ struct ProductField: View {
             grocyVM.postLog(message: "Scanning for product failed. \(error)", type: .error)
         }
     }
-    #endif
+#endif
     
     private func getBarcodes(pID: String) -> [String] {
         grocyVM.mdProductBarcodes.filter{$0.productID == pID}.map{$0.barcode}
@@ -41,36 +41,27 @@ struct ProductField: View {
         }
     }
     
-    #if os(iOS)
     var body: some View {
         Picker(selection: $productID, label: Label(LocalizedStringKey(description), systemImage: MySymbols.product).foregroundColor(.primary), content: {
-            HStack {
-                SearchBar(text: $searchTerm, placeholder: "str.search")
-                Button(action: {
-                    isShowingScanner.toggle()
-                }, label: {
-                    Image(systemName: MySymbols.barcodeScan)
-                })
-                .sheet(isPresented: $isShowingScanner) {
+#if os(iOS)
+            Button(action: {
+                isShowingScanner.toggle()
+            }, label: {
+                Label(LocalizedStringKey("str.quickScan.barcode.search"), systemImage: MySymbols.barcodeScan)
+            })
+                .sheet(isPresented: $isShowingScanner, content: {
                     CodeScannerView(codeTypes: [.ean8, .ean13], scanMode: .once, simulatedData: "5901234123457", completion: self.handleScan)
-                }
-            }
-            Text("").tag(nil as String?)
-            ForEach(filteredProducts, id: \.id) { productElement in
-                Text(productElement.name).tag(productElement.id as String?)
-            }
-        }).pickerStyle(DefaultPickerStyle())
-    }
-    #elseif os(macOS)
-    var body: some View {
-        Picker(selection: $productID, label: Label(LocalizedStringKey(description), systemImage: MySymbols.product), content: {
-            Text("").tag(nil as String?)
-            ForEach(filteredProducts, id: \.id) { productElement in
-                Text(productElement.name).tag(productElement.id as String?)
-            }
+                })
+#endif
+            Text("")
+                .tag(nil as String?)
+            ForEach(filteredProducts, id: \.id, content: { productElement in
+                Text(productElement.name)
+                    .tag(productElement.id as String?)
+            })
+//                .searchable("str.search", text: $searchTerm)
         })
     }
-    #endif
 }
 
 struct ProductField_Previews: PreviewProvider {

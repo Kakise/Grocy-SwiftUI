@@ -10,7 +10,7 @@ import SwiftUI
 struct ShoppingListFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @State private var name: String = ""
     
@@ -27,7 +27,7 @@ struct ShoppingListFormView: View {
     
     private func finishForm() {
         #if os(iOS)
-        presentationMode.wrappedValue.dismiss()
+        dismiss()
         #elseif os(macOS)
         NSApp.sendAction(#selector(NSPopover.performClose(_:)), to: nil, from: nil)
         #endif
@@ -79,10 +79,7 @@ struct ShoppingListFormView: View {
                 .navigationTitle(isNewShoppingListDescription ? LocalizedStringKey("str.shL.form.new") : LocalizedStringKey("str.shL.form.edit"))
                 .toolbar{
                     ToolbarItem(placement: .cancellationAction) {
-                        Button(LocalizedStringKey("str.cancel")) {
-                            finishForm()
-                        }
-                        .keyboardShortcut(.cancelAction)
+                        Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button(LocalizedStringKey("str.save")) {

@@ -25,8 +25,8 @@ struct MyToggle: View {
             } else {
                 Toggle(LocalizedStringKey(description), isOn: $isOn)
             }
-            if let descriptionInfoU = descriptionInfo {
-                FieldDescription(description: descriptionInfoU)
+            if let descriptionInfo = descriptionInfo {
+                FieldDescription(description: descriptionInfo)
             }
         }
     }
