@@ -106,23 +106,9 @@ struct MDProductsView: View {
             content
                 .toolbar (content: {
                     ToolbarItem(placement: .primaryAction, content: {
-                        HStack{
-                            Button(action: {
-                                withAnimation {
-                                    self.reloadRotationDeg += 360
-                                }
-                                updateData()
-                            }, label: {
-                                Image(systemName: MySymbols.reload)
-                                    .rotationEffect(Angle.degrees(reloadRotationDeg))
-                            })
-                            Button(action: {
-                                showAddProduct.toggle()
-                            }, label: {Image(systemName: MySymbols.new)})
-                        }
-                    })
-                    ToolbarItem(placement: .automatic, content: {
-                        ToolbarSearchField(searchTerm: $searchString)
+                        Button(action: {
+                            showAddProduct.toggle()
+                        }, label: {Image(systemName: MySymbols.new)})
                     })
                 })
                 .frame(minWidth: Constants.macOSNavWidth)

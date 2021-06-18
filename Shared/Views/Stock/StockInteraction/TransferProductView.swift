@@ -183,7 +183,7 @@ struct TransferProductView: View {
             }
         })
         .toolbar(content: {
-            ToolbarItemGroup(placement: .navigationBarTrailing, content: {
+            ToolbarItemGroup(placement: .automatic, content: {
                 if isProcessingAction {
                     ProgressView().progressViewStyle(.circular)
                 } else {

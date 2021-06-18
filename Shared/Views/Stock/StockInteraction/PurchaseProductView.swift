@@ -207,11 +207,11 @@ struct PurchaseProductView: View {
             }
         })
         .toolbar(content: {
-            ToolbarItemGroup(placement: .navigationBarTrailing, content: {
+            ToolbarItemGroup(placement: .automatic, content: {
                 if isProcessingAction {
                     ProgressView().progressViewStyle(.circular)
                 } else {
-                    Button(action: resetForm, label: {
+                    Button(role: .destructive, action: resetForm, label: {
                         Label(LocalizedStringKey("str.clear"), systemImage: MySymbols.cancel)
                             .help(LocalizedStringKey("str.clear"))
                     })

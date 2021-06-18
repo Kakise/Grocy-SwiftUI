@@ -86,16 +86,7 @@ struct MDProductGroupsView: View {
         NavigationView {
             content
                 .toolbar(content: {
-                    ToolbarItemGroup(placement: .navigationBarTrailing, content: {
-                            Button(action: {
-                                withAnimation {
-                                    self.reloadRotationDeg += 360
-                                }
-                                updateData()
-                            }, label: {
-                                Image(systemName: MySymbols.reload)
-                                    .rotationEffect(Angle.degrees(reloadRotationDeg))
-                            })
+                    ToolbarItem(placement: .primaryAction, content: {
                             Button(action: {
                                 showAddProductGroup.toggle()
                             }, label: {Image(systemName: MySymbols.new)})

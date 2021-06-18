@@ -28,7 +28,7 @@ struct MDTaskCategoriesView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
     @Environment(\.dismiss) var dismiss
-
+    
     @State private var searchString: String = ""
     @State private var showAddTaskCategory: Bool = false
     
@@ -81,7 +81,7 @@ struct MDTaskCategoriesView: View {
         }
     }
     
-    #if os(macOS)
+#if os(macOS)
     var bodyContent: some View {
         NavigationView {
             content
@@ -91,37 +91,34 @@ struct MDTaskCategoriesView: View {
                             Button(action: {
                                 showAddTaskCategory.toggle()
                             }, label: {Image(systemName: MySymbols.new)})
-//                            .popover(isPresented: self.$showAddTaskCategory, content: {
-//                                MDTaskCategoryFormView(isNewTaskCategory: true, toastType: $toastType)
-//                            })
+                                .popover(isPresented: self.$showAddTaskCategory, content: {
+                                    MDTaskCategoryFormView(isNewTaskCategory: true, showAddTaskCategory: $showAddTaskCategory, toastType: $toastType)
+                                })
                         }
-                    })
-                    ToolbarItem(placement: .automatic, content: {
-                        ToolbarSearchField(searchTerm: $searchString)
                     })
                 })
                 .frame(minWidth: Constants.macOSNavWidth)
         }
         .navigationTitle(LocalizedStringKey("str.md.taskCategories"))
     }
-    #elseif os(iOS)
+#elseif os(iOS)
     var bodyContent: some View {
         content
             .toolbar {
                 ToolbarItem(placement: .primaryAction, content: {
-                        Button(action: {
-                            showAddTaskCategory.toggle()
-                        }, label: {Image(systemName: MySymbols.new)})
+                    Button(action: {
+                        showAddTaskCategory.toggle()
+                    }, label: {Image(systemName: MySymbols.new)})
                 })
             }
             .navigationTitle(LocalizedStringKey("str.md.taskCategories"))
             .sheet(isPresented: self.$showAddTaskCategory, content: {
-                    NavigationView {
-                        MDTaskCategoryFormView(isNewTaskCategory: true, showAddTaskCategory: $showAddTaskCategory, toastType: $toastType)
-                    }
+                NavigationView {
+                    MDTaskCategoryFormView(isNewTaskCategory: true, showAddTaskCategory: $showAddTaskCategory, toastType: $toastType)
+                }
             })
     }
-    #endif
+#endif
     
     var content: some View {
         List(){
@@ -130,13 +127,13 @@ struct MDTaskCategoriesView: View {
             } else if filteredTaskCategories.isEmpty {
                 Text(LocalizedStringKey("str.noSearchResult"))
             }
-            #if os(macOS)
+#if os(macOS)
             if showAddTaskCategory {
                 NavigationLink(destination: MDTaskCategoryFormView(isNewTaskCategory: true, showAddTaskCategory: $showAddTaskCategory, toastType: $toastType), isActive: $showAddTaskCategory, label: {
                     NewMDRowLabel(title: "str.md.taskCategory.new")
                 })
             }
-            #endif
+#endif
             ForEach(filteredTaskCategories, id:\.id) { taskCategory in
                 NavigationLink(destination: MDTaskCategoryFormView(isNewTaskCategory: false, taskCategory: taskCategory, showAddTaskCategory: Binding.constant(false), toastType: $toastType)) {
                     MDTaskCategoryRowView(taskCategory: taskCategory)
@@ -177,13 +174,13 @@ struct MDTaskCategoriesView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             MDTaskCategoryRowView(taskCategory: MDTaskCategory(id: "0", name: "Name", mdTaskCategoryDescription: "Description", rowCreatedTimestamp: "", userfields: nil))
-            #if os(macOS)
+#if os(macOS)
             MDTaskCategoriesView()
-            #else
+#else
             NavigationView() {
                 MDTaskCategoriesView()
             }
-            #endif
+#endif
         }
     }
 }

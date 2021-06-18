@@ -89,9 +89,6 @@ struct MDUserEntitiesView: View {
                                 showAddUserEntity.toggle()
                             }, label: {Image(systemName: MySymbols.new)})
                     })
-                    ToolbarItem(placement: .automatic, content: {
-                        ToolbarSearchField(searchTerm: $searchString)
-                    })
                 })
                 .frame(minWidth: Constants.macOSNavWidth)
         }

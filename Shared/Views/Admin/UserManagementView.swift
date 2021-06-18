@@ -69,10 +69,6 @@ struct UserManagementView: View {
                             .frame(width: 500, height: 500)
                     })
                 })
-                
-                ToolbarItem(placement: .automatic, content: {
-                    ToolbarSearchField(searchTerm: $searchString)
-                })
             })
     }
     #elseif os(iOS)
