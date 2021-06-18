@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import URLImage
 
 struct MDProductRowView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
@@ -16,13 +15,15 @@ struct MDProductRowView: View {
     var body: some View {
         HStack{
             if let pictureFileName = product.pictureFileName, !pictureFileName.isEmpty, let base64Encoded = pictureFileName.data(using: .utf8)?.base64EncodedString(options: Data.Base64EncodingOptions(rawValue: 0)), let pictureURL = grocyVM.getPictureURL(groupName: "productpictures", fileName: base64Encoded), let url = URL(string: pictureURL) {
-                URLImage(url: url) { image in
+                AsyncImage(url: url, content: { image in
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .background(Color.white)
-                }
-                .frame(width: 75, height: 75)
+                }, placeholder: {
+                    ProgressView().progressViewStyle(.circular)
+                })
+                    .frame(width: 75, height: 75)
             }
             VStack(alignment: .leading) {
                 Text(product.name).font(.largeTitle)
@@ -47,13 +48,10 @@ struct MDProductRowView: View {
 struct MDProductsView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
-    @State private var isSearching: Bool = false
     @State private var searchString: String = ""
     @State private var showAddProduct: Bool = false
-    
-    @State private var reloadRotationDeg: Double = 0
     
     @State private var productToDelete: MDProduct? = nil
     @State private var showDeleteAlert: Bool = false
@@ -102,7 +100,7 @@ struct MDProductsView: View {
         }
     }
     
-    #if os(macOS)
+#if os(macOS)
     var bodyContent: some View {
         NavigationView{
             content
@@ -131,28 +129,14 @@ struct MDProductsView: View {
         }
         .navigationTitle(LocalizedStringKey("str.md.products"))
     }
-    #elseif os(iOS)
+#elseif os(iOS)
     var bodyContent: some View {
         content
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    HStack{
-                        Button(action: {
-                            isSearching.toggle()
-                        }, label: {Image(systemName: MySymbols.search)})
-                        Button(action: {
-                            withAnimation {
-                                self.reloadRotationDeg += 360
-                            }
-                            updateData()
-                        }, label: {
-                            Image(systemName: MySymbols.reload)
-                                .rotationEffect(Angle.degrees(reloadRotationDeg))
-                        })
-                        Button(action: {
-                            showAddProduct.toggle()
-                        }, label: {Image(systemName: MySymbols.new)})
-                    }
+                    Button(action: {
+                        showAddProduct.toggle()
+                    }, label: {Image(systemName: MySymbols.new)})
                 }
             }
             .navigationTitle(LocalizedStringKey("str.md.products"))
@@ -162,25 +146,22 @@ struct MDProductsView: View {
                 }
             })
     }
-    #endif
+#endif
     
     var content: some View {
         List(){
-            #if os(iOS)
-            if isSearching { SearchBar(text: $searchString, placeholder: "str.md.search") }
-            #endif
             if grocyVM.mdProducts.isEmpty {
                 Text(LocalizedStringKey("str.md.products.empty"))
             } else if filteredProducts.isEmpty {
                 Text(LocalizedStringKey("str.noSearchResult"))
             }
-            #if os(macOS)
+#if os(macOS)
             if showAddProduct {
                 NavigationLink(destination: MDProductFormView(isNewProduct: true, showAddProduct: $showAddProduct, toastType: $toastType), isActive: $showAddProduct, label: {
                     NewMDRowLabel(title: "str.md.product.new")
                 })
             }
-            #endif
+#endif
             ForEach(filteredProducts, id:\.id) { product in
                 NavigationLink(destination: MDProductFormView(isNewProduct: false, product: product, showAddProduct: Binding.constant(false), toastType: $toastType)) {
                     MDProductRowView(product: product)
@@ -191,7 +172,9 @@ struct MDProductsView: View {
         .onAppear(perform: {
             grocyVM.requestData(objects: [.products, .locations, .product_groups], ignoreCached: false)
         })
-        .animation(.default)
+        .searchable(LocalizedStringKey("str.search"), text: $searchString)
+        .refreshable(action: updateData)
+        .animation(.default, value: filteredProducts.count)
         .toast(item: $toastType, isSuccess: Binding.constant(toastType == .successAdd || toastType == .successEdit), content: { item in
             switch item {
             case .successAdd:
@@ -206,22 +189,23 @@ struct MDProductsView: View {
                 Label(LocalizedStringKey("str.md.delete.fail"), systemImage: MySymbols.failure)
             }
         })
-        .alert(isPresented: $showDeleteAlert) {
-            Alert(title: Text("str.md.product.delete.confirm"), message: Text(productToDelete?.name ?? "error"), primaryButton: .destructive(Text("str.delete")) {
+        .alert(LocalizedStringKey("str.md.product.delete.confirm"), isPresented: $showDeleteAlert, actions: {
+            Button(LocalizedStringKey("str.cancel"), role: .cancel) { }
+            Button(LocalizedStringKey("str.delete"), role: .destructive) {
                 deleteProduct(toDelID: productToDelete?.id ?? "")
-            }, secondaryButton: .cancel())
-        }
+            }
+        }, message: { Text(productToDelete?.name ?? "error") })
     }
 }
 
 struct MDProductsView_Previews: PreviewProvider {
     static var previews: some View {
-        #if os(macOS)
+#if os(macOS)
         MDProductsView()
-        #else
+#else
         NavigationView() {
             MDProductsView()
         }
-        #endif
+#endif
     }
 }

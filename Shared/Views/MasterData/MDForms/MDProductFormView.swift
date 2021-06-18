@@ -10,7 +10,7 @@ import SwiftUI
 struct MDProductFormView: View {
     @StateObject var grocyVM: GrocyViewModel = .shared
     
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
     
     @AppStorage("devMode") private var devMode: Bool = false
     
@@ -91,7 +91,7 @@ struct MDProductFormView: View {
         quIDPurchase = product?.quIDPurchase
         
         minStockAmount = Double(product?.minStockAmount ?? "") ?? 0.0
-        cumulateMinStockAmountOfSubProducts = Bool(product?.cumulateMinStockAmountOfSubProducts ?? "") ?? false
+        cumulateMinStockAmountOfSubProducts = ((product?.cumulateMinStockAmountOfSubProducts ?? "") as NSString).boolValue
         quickConsumeAmount = Double(product?.quickConsumeAmount ?? "") ?? 1.0
         quFactorPurchaseToStock = Double(product?.quFactorPurchaseToStock ?? "") ?? 1.0
         enableTareWeightHandling = (product?.enableTareWeightHandling ?? "0") == "1"
@@ -106,13 +106,13 @@ struct MDProductFormView: View {
     }
     
     private func finishForm() {
-        #if os(iOS)
-        presentationMode.wrappedValue.dismiss()
-        #elseif os(macOS)
+#if os(iOS)
+        dismiss()
+#elseif os(macOS)
         if isNewProduct {
             showAddProduct = false
         }
-        #endif
+#endif
     }
     
     private var isFormValid: Bool {
@@ -158,19 +158,17 @@ struct MDProductFormView: View {
     }
     
     var body: some View {
-        #if os(macOS)
+#if os(macOS)
         NavigationView{
             content
                 .padding()
         }
-        #elseif os(iOS)
+#elseif os(iOS)
         content
             .navigationTitle(isNewProduct ? LocalizedStringKey("str.md.product.new") : LocalizedStringKey("str.md.product.edit"))
             .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(LocalizedStringKey("str.cancel")) {
-                        finishForm()
-                    }
+                    Button(LocalizedStringKey("str.cancel"), role: .cancel, action: finishForm)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(LocalizedStringKey("str.md.product.save")) {
@@ -185,22 +183,22 @@ struct MDProductFormView: View {
                     }
                 }
             })
-        #endif
+#endif
     }
     
     var content: some View {
         Form {
-            #if os(iOS)
+#if os(iOS)
             if devMode && isNewProduct {
                 Button(action: {
                     showOFFResult.toggle()
                 }, label: {Label("FILL WITH OFF", systemImage: "plus")})
-                .popover(isPresented: $showOFFResult, content: {
-                    OpenFoodFactsScannerView()
-                        .frame(width: 500, height: 500)
-                })
+                    .popover(isPresented: $showOFFResult, content: {
+                        OpenFoodFactsScannerView()
+                            .frame(width: 500, height: 500)
+                    })
             }
-            #endif
+#endif
             
             
             MyTextField(textToEdit: $name, description: "str.md.product.name", isCorrect: $isNameCorrect, leadingIcon: "tag", emptyMessage: "str.md.product.name.required", errorMessage: "str.md.product.name.exists")
@@ -210,7 +208,7 @@ struct MDProductFormView: View {
             
             Section {
                 
-                #if os(macOS)
+#if os(macOS)
                 if #available(OSX 11.3, *) {
                     Text("Navigation currently not working on macOS Big Sur 11.3 and up. It worked in previous versions.")
                         .foregroundColor(Color.red)
@@ -218,51 +216,51 @@ struct MDProductFormView: View {
                 NavigationLink(
                     destination: NavigationView{optionalPropertiesView},
                     label: {
-                        MyLabelWithSubtitle(title: "str.md.product.category.optionalProperties", subTitle: "str.md.product.category.optionalProperties.description", systemImage: MySymbols.description)
-                    })
-                #else
+                    MyLabelWithSubtitle(title: "str.md.product.category.optionalProperties", subTitle: "str.md.product.category.optionalProperties.description", systemImage: MySymbols.description)
+                })
+#else
                 NavigationLink(
                     destination: optionalPropertiesView,
                     label: {
-                        MyLabelWithSubtitle(title: "str.md.product.category.optionalProperties", subTitle: "str.md.product.category.optionalProperties.description", systemImage: MySymbols.description)
-                    })
-                #endif
+                    MyLabelWithSubtitle(title: "str.md.product.category.optionalProperties", subTitle: "str.md.product.category.optionalProperties.description", systemImage: MySymbols.description)
+                })
+#endif
                 
                 NavigationLink(
                     destination: locationPropertiesView,
                     label: {
-                        MyLabelWithSubtitle(title: "str.md.product.category.defaultLocations", subTitle: "str.md.product.category.defaultLocations.description", systemImage: MySymbols.location, isProblem: locationID == nil)
-                    })
+                    MyLabelWithSubtitle(title: "str.md.product.category.defaultLocations", subTitle: "str.md.product.category.defaultLocations.description", systemImage: MySymbols.location, isProblem: locationID == nil)
+                })
                 
                 NavigationLink(
                     destination: dueDatePropertiesView,
                     label: {
-                        MyLabelWithSubtitle(title: "str.md.product.category.dueDate", subTitle: "str.md.product.category.dueDate.description", systemImage: MySymbols.date)
-                    })
+                    MyLabelWithSubtitle(title: "str.md.product.category.dueDate", subTitle: "str.md.product.category.dueDate.description", systemImage: MySymbols.date)
+                })
                 
                 NavigationLink(
                     destination: quantityUnitPropertiesView,
                     label: {
-                        MyLabelWithSubtitle(title: "str.md.product.category.quantityUnits", subTitle: "str.md.product.category.quantityUnits.description", systemImage: MySymbols.quantityUnit, isProblem: (quIDStock == nil || quIDPurchase == nil))
-                    })
+                    MyLabelWithSubtitle(title: "str.md.product.category.quantityUnits", subTitle: "str.md.product.category.quantityUnits.description", systemImage: MySymbols.quantityUnit, isProblem: (quIDStock == nil || quIDPurchase == nil))
+                })
                 
                 NavigationLink(
                     destination: amountPropertiesView,
                     label: {
-                        MyLabelWithSubtitle(title: "str.md.product.category.amount", subTitle: "str.md.product.category.amount.description", systemImage: MySymbols.amount)
-                    })
+                    MyLabelWithSubtitle(title: "str.md.product.category.amount", subTitle: "str.md.product.category.amount.description", systemImage: MySymbols.amount)
+                })
                 
                 NavigationLink(
                     destination: barcodePropertiesView,
                     label: {
-                        MyLabelWithSubtitle(title: "str.md.barcodes", subTitle: isNewProduct ? "str.md.product.notOnServer" : "", systemImage: MySymbols.barcode, hideSubtitle: !isNewProduct)
-                    })
+                    MyLabelWithSubtitle(title: "str.md.barcodes", subTitle: isNewProduct ? "str.md.product.notOnServer" : "", systemImage: MySymbols.barcode, hideSubtitle: !isNewProduct)
+                })
                     .disabled(isNewProduct)
             }
             
-            #if os(macOS)
+#if os(macOS)
             HStack{
-                Button(LocalizedStringKey("str.cancel")) {
+                Button(LocalizedStringKey("str.cancel"), role: .cancel) {
                     if isNewProduct{
                         finishForm()
                     } else {
@@ -277,7 +275,7 @@ struct MDProductFormView: View {
                 .disabled(!isFormValid || isProcessing)
                 .keyboardShortcut(.defaultAction)
             }
-            #endif
+#endif
         }
         .onAppear(perform: {
             if firstAppear {
@@ -317,7 +315,7 @@ struct MDProductFormView: View {
             NavigationLink(destination: MDProductPictureFormView(product: product, selectedPictureURL: $selectedPictureURL, selectedPictureFileName: $selectedPictureFileName), label: {
                 MyLabelWithSubtitle(title: "str.md.product.picture", subTitle: (product?.pictureFileName ?? "").isEmpty ? "str.md.product.picture.none" : "str.md.product.picture.saved", systemImage: MySymbols.picture)
             })
-            .disabled(isNewProduct)
+                .disabled(isNewProduct)
         }
         .navigationTitle(LocalizedStringKey("str.md.product.category.optionalProperties"))
     }
@@ -375,9 +373,9 @@ struct MDProductFormView: View {
                         Text(grocyQuantityUnit.name).tag(grocyQuantityUnit.id as String?)
                     }
                 })
-                .onChange(of: quIDStock, perform: { newValue in
-                    if quIDPurchase == nil { quIDPurchase = quIDStock }
-                })
+                    .onChange(of: quIDStock, perform: { newValue in
+                        if quIDPurchase == nil { quIDPurchase = quIDStock }
+                    })
                 
                 FieldDescription(description: "str.md.product.quStock.info")
             }
@@ -409,12 +407,12 @@ struct MDProductFormView: View {
             VStack(alignment: .trailing) {
                 MyDoubleStepper(amount: $quFactorPurchaseToStock, description: "str.md.product.quFactorPurchaseToStock", minAmount: 0.0001, amountStep: 1.0, amountName: "", errorMessage: "str.md.product.quFactorPurchaseToStock.invalid", systemImage: MySymbols.amount)
                 if quFactorPurchaseToStock != 1 {
-                    #if os(macOS)
+#if os(macOS)
                     Text(LocalizedStringKey("str.md.product.quFactorPurchaseToStock.description \(currentQUPurchase?.name ?? "QU ERROR") \(String(format: "%.f", quFactorPurchaseToStock)) \(currentQUStock?.namePlural ?? "QU ERROR")"))
                         .frame(maxWidth: 200)
-                    #else
+#else
                     Text(LocalizedStringKey("str.md.product.quFactorPurchaseToStock.description \(currentQUPurchase?.name ?? "QU ERROR") \(String(format: "%.f", quFactorPurchaseToStock)) \(currentQUStock?.namePlural ?? "QU ERROR")"))
-                    #endif
+#endif
                 }
             }
             
@@ -435,13 +433,13 @@ struct MDProductFormView: View {
     var barcodePropertiesView: some View {
         Group{
             if let product = product {
-                #if os(macOS)
+#if os(macOS)
                 ScrollView{
                     MDBarcodesView(productID: product.id, toastType: $toastType)
                 }
-                #else
+#else
                 MDBarcodesView(productID: product.id, toastType: $toastType)
-                #endif
+#endif
             }
         }
     }
@@ -449,14 +447,14 @@ struct MDProductFormView: View {
 
 struct MDProductFormView_Previews: PreviewProvider {
     static var previews: some View {
-        #if os(macOS)
+#if os(macOS)
         Group {
             MDProductFormView(isNewProduct: true, showAddProduct: Binding.constant(true), toastType: Binding.constant(nil))
         }
-        #else
+#else
         Group {
             MDProductFormView(isNewProduct: true, showAddProduct: Binding.constant(true), toastType: Binding.constant(nil))
         }
-        #endif
+#endif
     }
 }
