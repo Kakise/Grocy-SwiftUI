@@ -37,17 +37,22 @@ struct AboutView: View {
                 Link(destination: URL(string: "https://github.com/grocy/grocy")!, label: {
                     AboutLineView(iconName: MySymbols.purchase, caption: "Grocy", content: "Copyright (MIT License) 2017 Bernd Bestel")
                 })
-                .foregroundColor(.primary)
+                    .foregroundColor(.primary)
                 
                 Link(destination: URL(string: "https://github.com/twostraws/CodeScanner")!, label: {
                     AboutLineView(iconName: MySymbols.barcodeScan, caption: "CodeScanner", content: "Copyright (MIT License) 2019 Paul Hudson")
                 })
-                .foregroundColor(.primary)
+                    .foregroundColor(.primary)
+                
+                Link(destination: URL(string: "https://github.com/SwiftyBeaver/SwiftyBeaver")!, label: {
+                    AboutLineView(iconName: MySymbols.logFile, caption: "SwiftyBeaver", content: "Copyright (MIT License) 2015 Sebastian Kreutzberger")
+                })
+                    .foregroundColor(.primary)
                 
                 Link(destination: URL(string: "https://github.com/g-mark/NullCodable")!, label: {
                     AboutLineView(iconName: MySymbols.upload, caption: "Null Codable", content: "Copyright (Apache License 2.0) 2020 Steven Grosmark")
                 })
-                .foregroundColor(.primary)
+                    .foregroundColor(.primary)
             }
             Button(action: {
                 self.onboardingNeeded = true

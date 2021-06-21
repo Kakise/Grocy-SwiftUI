@@ -9,9 +9,7 @@ import Foundation
 import Combine
 import SwiftUI
 import OSLog
-#if !TESTING
 import SwiftyBeaver
-#endif
 
 class GrocyViewModel: ObservableObject {
     var grocyApi: GrocyAPI
@@ -499,7 +497,7 @@ class GrocyViewModel: ObservableObject {
             self.grocyLog.debug("\(message)")
         case .fault:
             self.grocyLog.error("\(message)")
-        //            self.grocyLog.fault("\(message)")
+//                    self.grocyLog.fault("\(message)")
         default:
             #if TESTING
             self.grocyLog.log("\(message)")

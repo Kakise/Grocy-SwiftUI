@@ -201,7 +201,7 @@ struct InventoryProductView: View {
             }
         })
         .toolbar(content: {
-            ToolbarItemGroup(placement: .automatic, content: {
+            ToolbarItemGroup(placement: MyToolbarPlacement.confirmationAction, content: {
                 if isProcessingAction {
                     ProgressView().progressViewStyle(.circular)
                 } else {

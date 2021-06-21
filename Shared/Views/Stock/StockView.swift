@@ -313,13 +313,13 @@ struct StockView: View {
                                 .tint(.grocyGreen)
                         })
                 }
-//                .listRowSeparatorTint(Color.white)
             }
         }
         //        .listStyle(InsetListStyle())
         .navigationTitle(LocalizedStringKey("str.stock.stockOverview"))
         .searchable(LocalizedStringKey("str.search"), text: $searchString)
         .refreshable(action: updateData)
+        .animation(.default, value: filteredStock.count)
         .onAppear(perform: {
             if firstAppear {
                 grocyVM.requestData(objects: [.products, .shopping_locations, .locations, .product_groups, .quantity_units, .shopping_lists, .shopping_list], additionalObjects: [.stock, .system_config], ignoreCached: false)

@@ -100,7 +100,7 @@ struct LogView: View {
                 })
             }
             #endif
-            ForEach(logText, id: \.self) {text in
+            ForEach(logText.reversed(), id: \.self) {text in
                 Text(text)
             }
         }
